@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+
+<div style="width: 400px;height: 200px;">
+    <canvas id="myChart"></canvas>
+</div>
+
+<script th:inline="javascript">
+    var lables = ["11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00"];
+
+    function drawChar() {
+        var data = [];
+        /*[# th:each="stat : ${stats}"]*/
+        data.push({x:/*[[${stat.getTimePos()}]]*/, y:/*[[${stat.getTotalView()}]]*/});
+        /*[/]*/
+
+        new Chart(document.getElementById("myChart"), {
+            "type": "line",
+            "data": {
+                "labels": lables,
+                "datasets": [{
+                    "label": "Количество просмотров",
+                    "data": data,
+                    "fill": true,
+                    "pointRadius": 4,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "lineTension": 0.1
+                }]
+            },
+            "options": {}
+        });
+    }
+</script>
+
+</body>
+</html>

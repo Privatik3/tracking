@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div id="chart"></div>
+<!--Пагинация времени-->
+<div id="timelineClock"></div>
+<div id="ads"></div>
+
+<script>
+    $('#timelineClock').timespace({
+        use12HourTime: false,
+        selectedEvent: 0,
+        data: {
+            headings: [
+                {start: 0, end: 24, title: '24-Hour Timeline'}
+            ],
+            events: [
+                {start: 11, title: 'Update', callback: timeChange},
+                {start: 12, title: 'Update', callback: timeChange},
+                {start: 13, title: 'Update', callback: timeChange},
+                {start: 14, title: 'Update', callback: timeChange},
+                {start: 15, title: 'Update', callback: timeChange},
+                {start: 16, title: 'Update', callback: timeChange},
+                {start: 17, title: 'Update', callback: timeChange},
+                {start: 18, title: 'Update', callback: timeChange},
+                {start: 19, title: 'Update', callback: timeChange},
+                {start: 20, title: 'Update', callback: timeChange},
+                {start: 21, title: 'Update', callback: timeChange},
+                {start: 22, title: 'Update', callback: timeChange}
+            ]
+        }
+    });
+
+    function timeChange() {
+        var time = $('p.jqTimespaceEventSelected').attr('title');
+        getAds(time.substring(0, 2));
+    }
+</script>
+<!--end Пагинации времени-->
+</body>
+</html>
