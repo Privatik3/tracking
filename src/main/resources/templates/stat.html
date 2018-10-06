@@ -5,8 +5,16 @@
 </head>
 <body>
 
-<div style="width: 400px;height: 200px;">
-    <canvas id="myChart"></canvas>
+<div style="display: inline-block; width: 400px; height: 200px;">
+    <canvas id="view"></canvas>
+</div>
+
+<div style="display: inline-block; width: 400px; height: 200px;">
+    <canvas id="position"></canvas>
+</div>
+
+<div style="display: inline-block; width: 400px; height: 200px;">
+    <canvas id="price"></canvas>
 </div>
 
 <script th:inline="javascript">
@@ -14,20 +22,29 @@
 
     function drawChar() {
         var data = [];
-        /*[# th:each="stat : ${stats}"]*/
-        data.push({x:/*[[${stat.getTimePos()}]]*/, y:/*[[${stat.getTotalView()}]]*/});
-        /*[/]*/
+        /*[# th:each="stat : ${stats}"]*/data.push({x:/*[[${stat.getTimePos()}]]*/, y:/*[[${stat.getTotalView()}]]*/});/*[/]*/
+        draw("view", data, "Количество просмотров", "rgb(0, 170, 255)");
 
-        new Chart(document.getElementById("myChart"), {
+        data = [];
+        /*[# th:each="stat : ${stats}"]*/data.push({x:/*[[${stat.getTimePos()}]]*/, y:/*[[${stat.getPosition()}]]*/});/*[/]*/
+        draw("position", data, "Позиция в выдаче", "rgb(0, 170, 255)");
+
+        data = [];
+        /*[# th:each="stat : ${stats}"]*/data.push({x:/*[[${stat.getTimePos()}]]*/, y:/*[[${stat.getPrice()}]]*/});/*[/]*/
+        draw("price", data, "Цена", "rgb(0, 170, 255)");
+    }
+
+    function draw(chartID, data, title, color) {
+        new Chart(document.getElementById(chartID), {
             "type": "line",
             "data": {
                 "labels": lables,
                 "datasets": [{
-                    "label": "Количество просмотров",
+                    "label": title,
                     "data": data,
                     "fill": true,
                     "pointRadius": 4,
-                    "borderColor": "rgb(75, 192, 192)",
+                    "borderColor": color,
                     "lineTension": 0.1
                 }]
             },
