@@ -10,6 +10,8 @@
         <div class="ad">
             <div class="custom-col-md-4">
                 <div class="get-title" style="position: relative;top: 24px;z-index: 10;left: 37px;">
+                    <span class="statUp" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).UP}"></span>
+                    <span class="statDown" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).DOWN}"></span>
                     <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;" th:text="${ad.getTitle()}" /></a>
                 </div>
 
@@ -21,8 +23,7 @@
                             <div class="get-position">
                                 # <span th:text="${ad.getPosition()}" />
 
-                                <span class="statUp" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).UP}"></span>
-                                <span class="statDown" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).DOWN}"></span>
+
                             </div>
                             <div class="get-title">
                                 <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;display: none;" th:text="${ad.getTitle()}" /></a>
