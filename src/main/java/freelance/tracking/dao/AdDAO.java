@@ -33,12 +33,13 @@ public class AdDAO {
             ad.setPosition(rs.getInt("position"));
             ad.setId(rs.getString("ad_id"));
             ad.setTitle(rs.getString("title"));
+            ad.setUrl(rs.getString("url"));
             ad.setPrice(rs.getString("price"));
 
             int totalView = rs.getInt("total_view");
             int delayView = rs.getInt("delay_view");
 
-            ad.setStats(String.format("%d(+%d)", totalView, delayView));
+            ad.setStats(String.format("%d (+%d)", totalView, delayView));
 
             String prom = rs.getString("promotion");
             ad.setPremium(prom.contains("1"));

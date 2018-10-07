@@ -24,12 +24,6 @@ public class GreetingController {
         return "init";
     }
 
-    /*
-    @RequestParam(name="selectedID", required=false, defaultValue="-1") String selectedID,
-            @RequestParam(name="sort", required=false, defaultValue="total_view") String sort,
-            @RequestParam(name="time") String time, Model model
-     */
-
     @CrossOrigin
     @PostMapping("/get-ads")
     public String getAds(
@@ -40,9 +34,13 @@ public class GreetingController {
 
         List<AdInfo> ads = adDAO.getAdInfo(time, sort);
 
-        if (selectedID != null) {
+
+        if (!selectedID.isEmpty()) {
             Optional<AdInfo> any = ads.stream().filter(ad -> ad.getId().equals(selectedID)).findAny();
-            any.ifPresent(ad -> ad.setSelected(true));
+            any.ifPresent(ad -> {
+                ad.setSelected(true);
+                ad.changeSelectedStatus(adInfo);
+            });
         }
 
         model.addAttribute("ads", ads);

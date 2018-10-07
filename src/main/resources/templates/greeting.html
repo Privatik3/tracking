@@ -10,41 +10,91 @@
         <div class="ad">
             <div class="custom-col-md-4">
                 <div class="get-title" style="position: relative;top: 24px;z-index: 10;left: 37px;">
-                    <a target="_blank" href="#"><span style="color: #00aaff;" th:text="${ad.getTitle()}" /></a>
+                    <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;" th:text="${ad.getTitle()}" /></a>
                 </div>
-                <div th:classappend="${ad.isSelected()} ? selectedAD : ''" id="block-border" class='col-md-12'>
 
-                    <div id="top_flex">
-                        <div class="get-position">
-                            # <span th:text="${ad.getPosition()}" />
+                <!-- IF AD IS SELECTED -->
+                <div th:if="${ad.isSelected()}">
+                    <div id="block-border" class='col-md-12 selectedAD'>
+
+                        <div id="top_flex">
+                            <div class="get-position">
+                                # <span th:text="${ad.getPosition()}" />
+
+                                <span class="statUp" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).UP}"></span>
+                                <span class="statDown" th:if="${ ad.getUpPosition()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).DOWN}"></span>
+                            </div>
+                            <div class="get-title">
+                                <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;display: none;" th:text="${ad.getTitle()}" /></a>
+                            </div>
+                            <div th:id="${ad.getId()}" class="get-id">
+                                № <span th:text="${ad.getId()}" />
+                            </div>
                         </div>
-                        <div class="get-title">
-                            <a target="_blank" href="#"><span style="color: #00aaff;display: none;" th:text="${ad.getTitle()}" /></a>
+
+                        <hr style="margin: 1px 10px;">
+
+                        <div style="display: flex;padding: 5px 0 2px;">
+                            <div class="get-price" id="avito_price">
+                                <div><span class="label-primary" th:text="${ad.getPrice()} + ' ₽'" /></div>
+                            </div>
+                            <div class="get-stats">
+                                <i class="monetization-icon_vas-premium-2" style="background-image: url(https://www.avito.st/s/cc/resources/01896f91cd69.svg);"></i>
+                                <span th:text="${ad.getStats()}" />
+                                <span class="statDown" th:if="${ ad.getUpStats()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).UP}"></span>
+                                <span class="statUp" th:if="${ ad.getUpStats()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).DOWN}"></span>
+                            </div>
+                            <div class="get-pemium">
+                                <i th:if="${ad.isPremium()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
+                                <i th:if="${ad.isVip()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
+                                <i th:if="${ad.isUrgent()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
+                                <i th:if="${ad.isUpped()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
+                            </div>
                         </div>
-                        <div th:id="${ad.getId()}" class="get-id">
-                            № <span th:text="${ad.getId()}" />
-                        </div>
+
                     </div>
-
-                    <hr style="margin: 1px 10px;">
-
-                    <div style="display: flex;padding: 5px 0 2px;">
-                        <div class="get-price" id="avito_price">
-                            <div><span class="label-primary" th:text="${ad.getPrice()} + ' ₽'" /></div>
-                        </div>
-                        <div class="get-stats">
-                            <i class="monetization-icon_vas-premium-2" style="background-image: url(https://www.avito.st/s/cc/resources/01896f91cd69.svg);"></i>
-                            <span th:text="${ad.getStats()}" />
-                        </div>
-                        <div class="get-pemium">
-                            <i th:if="${ad.isPremium()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
-                            <i th:if="${ad.isVip()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
-                            <i th:if="${ad.isUrgent()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
-                            <i th:if="${ad.isUpped()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
-                        </div>
-                    </div>
-
                 </div>
+                <!-- ELSE -->
+                <div th:unless="${ad.isSelected()}">
+                    <div id="block-border" class='col-md-12'>
+
+                        <div id="top_flex">
+                            <div class="get-position">
+                                # <span th:text="${ad.getPosition()}" />
+                            </div>
+                            <div class="get-title">
+                                <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;display: none;" th:text="${ad.getTitle()}" /></a>
+                            </div>
+                            <div th:id="${ad.getId()}" class="get-id">
+                                № <span th:text="${ad.getId()}" />
+                            </div>
+                        </div>
+
+                        <hr style="margin: 1px 10px;">
+
+                        <div style="display: flex;padding: 5px 0 2px;">
+                            <div class="get-price" id="avito_price">
+                                <div><span class="label-primary" th:text="${ad.getPrice()} + ' ₽'" /></div>
+                            </div>
+                            <div class="get-stats">
+                                <i class="monetization-icon_vas-premium-2" style="background-image: url(https://www.avito.st/s/cc/resources/01896f91cd69.svg);"></i>
+                                <span th:text="${ad.getStats()}" />
+                            </div>
+                            <div class="get-pemium">
+                                <i th:if="${ad.isPremium()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
+                                <i th:if="${ad.isVip()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
+                                <i th:if="${ad.isUrgent()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
+                                <i th:if="${ad.isUpped()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+
+
             </div>
         </div>
     </th:block>

@@ -6,6 +6,7 @@ public class AdInfo {
     private Integer position;
 
     private String title;
+    private String url;
     private String price;
 
     private String stats;
@@ -16,6 +17,26 @@ public class AdInfo {
     private boolean upped;
 
     private boolean selected;
+
+    private ChangeStatus upPosition;
+//    private boolean upPrice;
+    private ChangeStatus upStats;
+
+    public ChangeStatus getUpPosition() {
+        return upPosition;
+    }
+
+    public ChangeStatus getUpStats() {
+        return upStats;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     public boolean isSelected() {
         return selected;
@@ -95,5 +116,34 @@ public class AdInfo {
 
     public void setUpped(boolean upped) {
         this.upped = upped;
+    }
+
+    public void changeSelectedStatus(AdInfo lastAD) {
+
+        upPosition = getStatus(lastAD.getPosition(), this.position);
+        upStats = getStatus(lastAD.getStats().split(" ")[0], this.stats.split(" ")[0]);
+
+//        upPrice = Integer.parseInt(lastAD.getPrice().replaceAll("\\s", "")) <
+//                Integer.parseInt(this.price.replaceAll("\\s", ""));
+    }
+
+    private ChangeStatus getStatus(String s1, String s2) {
+        return getStatus(Integer.parseInt(s1), Integer.parseInt(s2));
+    }
+
+    private ChangeStatus getStatus(Integer s1, Integer s2) {
+        if (s1.equals(s2))
+            return ChangeStatus.EQUEALS;
+
+        if (s1 > s2)
+            return ChangeStatus.UP;
+        else
+            return ChangeStatus.DOWN;
+    }
+
+    public enum ChangeStatus {
+        UP,
+        DOWN,
+        EQUEALS
     }
 }
