@@ -7,11 +7,10 @@ import freelance.tracking.dao.entity.AdStat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Controller
 public class GreetingController {
@@ -19,24 +18,38 @@ public class GreetingController {
     @Autowired
     AdDAO adDAO;
 
-    @CrossOrigin(origins = "http://superseller.pro")
+    @CrossOrigin
     @GetMapping("/init")
     public String init(Model model) {
         return "init";
     }
 
-    @CrossOrigin(origins = "http://superseller.pro")
-    @GetMapping("/greeting")
+    /*
+    @RequestParam(name="selectedID", required=false, defaultValue="-1") String selectedID,
+            @RequestParam(name="sort", required=false, defaultValue="total_view") String sort,
+            @RequestParam(name="time") String time, Model model
+     */
+
+    @CrossOrigin
+    @PostMapping("/get-ads")
     public String getAds(
-            @RequestParam(name="time") String time,
-            @RequestParam(name="sort", required=false, defaultValue="total_view") String sort, Model model) {
+            @ModelAttribute("time") String time,
+            @ModelAttribute("sort") String sort,
+            @ModelAttribute("selectedID") String selectedID,
+            @ModelAttribute("adInfo") AdInfo adInfo, Model model) {
 
         List<AdInfo> ads = adDAO.getAdInfo(time, sort);
+
+        if (selectedID != null) {
+            Optional<AdInfo> any = ads.stream().filter(ad -> ad.getId().equals(selectedID)).findAny();
+            any.ifPresent(ad -> ad.setSelected(true));
+        }
+
         model.addAttribute("ads", ads);
         return "greeting";
     }
 
-    @CrossOrigin(origins = "http://superseller.pro")
+    @CrossOrigin
     @GetMapping("/stat")
     public String stat(
             @RequestParam(name="taskID", required=false, defaultValue="2") String taskID,

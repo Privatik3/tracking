@@ -25,7 +25,7 @@ public class AdDAO {
 
     public List<AdInfo> getAdInfo(String time, String sort) {
 
-        String SQL = "SELECT * FROM data WHERE schedule_id = (SELECT id FROM schedule WHERE time = ?) ORDER BY " + sort + " DESC";
+        String SQL = "SELECT * FROM data WHERE schedule_id = (SELECT id FROM schedule WHERE time = ?) ORDER BY " + sort;
 
         return jdbcTemplate.query(SQL, (rs, i) -> {
             AdInfo ad = new AdInfo();

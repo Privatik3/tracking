@@ -12,7 +12,7 @@
                 <div class="get-title" style="position: relative;top: 24px;z-index: 10;left: 37px;">
                     <a target="_blank" href="#"><span style="color: #00aaff;" th:text="${ad.getTitle()}" /></a>
                 </div>
-                <div id="block-border" class="col-md-12">
+                <div th:classappend="${ad.isSelected()} ? selectedAD : ''" id="block-border" class='col-md-12'>
 
                     <div id="top_flex">
                         <div class="get-position">
