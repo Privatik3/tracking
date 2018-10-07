@@ -77,10 +77,10 @@
                                 <span th:text="${ad.getStats()}" />
                             </div>
                             <div class="get-pemium">
-                                <i th:if="${ad.isPremium()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
-                                <i th:if="${ad.isVip()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
-                                <i th:if="${ad.isUrgent()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
-                                <i th:if="${ad.isUpped()}" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
+                                <i th:if="${ad.isUpped()}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
+                                <i th:if="${ad.isUrgent()}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
+                                <i th:if="${ad.isVip()}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
+                                <i th:if="${ad.isPremium()}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
                             </div>
                         </div>
 
