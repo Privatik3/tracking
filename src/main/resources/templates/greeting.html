@@ -8,11 +8,8 @@
 <div style="text-align: center;">
     <th:block th:each="ad : ${ads}">
 
-
-
-
         <div class="ad">
-            <div class="new-position"></div>
+            <div th:if="${!ad.isOld()}" class="new-position"></div>
             <div class="custom-col-md-4">
                 <div class="get-title pos-two" style="position: relative;top: 24px;z-index: 10;">
                     <a target="_blank" th:href="${ad.getUrl().getCurVal()}"><span style="color: #00aaff;" th:text="${ad.getTitle().getCurVal()}" /></a>
@@ -20,10 +17,11 @@
 
                 <div>
                     <div id="block-border" class='col-md-12'>
-
                         <div id="top_flex">
                             <div class="get-position">
                                 # <span th:text="${ad.getPosition().getCurVal()}" />
+                                <span th:if="${ad.getPosition().isChange() && ad.getPosition().getStatus() == T(freelance.tracking.dao.entity.Param.Status).DOWN}" class="statUp"></span>
+                                <span th:if="${ad.getPosition().isChange() && ad.getPosition().getStatus() == T(freelance.tracking.dao.entity.Param.Status).UP }" class="statDown"></span>
                             </div>
                             <div th:id="${ad.getId()}" class="get-id">
                                 № <span th:text="${ad.getId()}" />
@@ -39,13 +37,24 @@
                             <div class="get-stats">
                                 <i class="monetization-icon_vas-premium-2" style="background-image: url(https://www.avito.st/s/cc/resources/01896f91cd69.svg);"></i>
                                 <span th:text="${ad.getStats().getCurVal()}" />
+                                <span th:if="${ad.getStats().isChange() && ad.getStats().getStatus() == T(freelance.tracking.dao.entity.Param.Status).UP}" class="statUp"></span>
+                                <span th:if="${ad.getStats().isChange() && ad.getStats().getStatus() == T(freelance.tracking.dao.entity.Param.Status).DOWN }" class="statDown"></span>
                             </div>
-                            <!--<div class="get-pemium">
-                                <i th:if="${ad.isUpped()}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
-                                <i th:if="${ad.isUrgent()}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
-                                <i th:if="${ad.isVip()}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
-                                <i th:if="${ad.isPremium()}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
-                            </div>-->
+                            <div class="get-pemium">
+                                <i th:if="${ad.getUpped().getCurVal().equals('1')}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
+                                <i th:if="${ad.getUpped().getCurVal().equals('0') && ad.getUpped().isChange()}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"><span class="close-premium"></span></i>
+
+                                <i th:if="${ad.getUrgent().getCurVal().equals('1')}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
+                                <i th:if="${ad.getUrgent().getCurVal().equals('0') && ad.getUrgent().isChange()}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"><span class="close-premium"></span></i>
+
+
+                                <i th:if="${ad.getVip().getCurVal().equals('1')}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
+                                <i th:if="${ad.getVip().getCurVal().equals('0') && ad.getVip().isChange()}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"><span class="close-premium"></span></i>
+
+
+                                <i th:if="${ad.getPremium().getCurVal().equals('1')}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
+                                <i th:if="${ad.getPremium().getCurVal().equals('0') && ad.getPremium().isChange()}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"><span class="close-premium"></span></i>
+                            </div>
                         </div>
 
                     </div>
