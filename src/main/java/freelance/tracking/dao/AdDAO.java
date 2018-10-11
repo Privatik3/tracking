@@ -48,6 +48,7 @@ public class AdDAO {
             int delayView = rs.getInt("delay_view");
 
             ad.setStats(new Param(String.format("%d (+%d)", totalView, delayView)));
+            ad.setOld(totalView == delayView);
 
             String prom = rs.getString("promotion");
             ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));

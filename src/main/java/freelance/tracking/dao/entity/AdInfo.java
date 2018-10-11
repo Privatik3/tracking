@@ -22,8 +22,6 @@ public class AdInfo {
     private boolean selected;
 
     public void updatePrev(AdInfo prevAd) {
-        this.old = true;
-
         this.position.update(prevAd.position);
         this.price.update(prevAd.price);
         this.stats.update(prevAd.stats);
@@ -96,6 +94,10 @@ public class AdInfo {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public void setOld(boolean old) {
+        this.old = old;
     }
 
     public Param getPosition() {
