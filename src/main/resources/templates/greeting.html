@@ -8,6 +8,7 @@
 <div style="text-align: center;">
     <th:block th:each="ad : ${ads}">
         <div class="ad">
+            <div class="new-position"></div>
             <div class="custom-col-md-4">
                 <div class="get-title" th:classappend="${ad.getPosition() > 9} ? pos-two: pos-one" style="position: relative;top: 24px;z-index: 10;">
                     <a target="_blank" th:href="${ad.getUrl()}"><span style="color: #00aaff;" th:text="${ad.getTitle()}" /></a>
@@ -44,10 +45,10 @@
                                 <span class="statUp" th:if="${ ad.getUpStats()  == T(freelance.tracking.dao.entity.AdInfo.ChangeStatus).DOWN}"></span>
                             </div>
                             <div class="get-pemium">
-                                <i th:if="${ad.isUpped()}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"></i>
-                                <i th:if="${ad.isUrgent()}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"></i>
-                                <i th:if="${ad.isVip()}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"></i>
-                                <i th:if="${ad.isPremium()}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"></i>
+                                <i th:if="${ad.isUpped()}" title="Поднято" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/f347cbb4ccf5.svg);"><span class="close-premium"></span></i>
+                                <i th:if="${ad.isUrgent()}" title="Выделено" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/979d4e30e97c.svg);"><span class="close-premium"></span></i>
+                                <i th:if="${ad.isVip()}" title="VIP" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/fa74f4440b5f.svg);"><span class="close-premium"></span></i>
+                                <i th:if="${ad.isPremium()}" title="Премиум" class="monetization-icon_vas-premium" style="background-image: url(https://www.avito.st/s/cc/resources/26adfa979fb4.svg);"><span class="close-premium"></span></i>
                             </div>
                         </div>
 
