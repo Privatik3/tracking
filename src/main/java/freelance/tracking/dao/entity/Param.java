@@ -31,6 +31,22 @@ public class Param {
         return Integer.parseInt(val.split("\\(")[0].replaceAll("\\s", ""));
     }
 
+    public boolean isChange() {
+        return change;
+    }
+
+    public String getCurVal() {
+        return curVal;
+    }
+
+    public String getPrevVal() {
+        return prevVal;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
     public enum Status {
         UP,
         DOWN

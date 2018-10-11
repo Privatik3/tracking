@@ -97,4 +97,40 @@ public class AdInfo {
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
+
+    public Param getPosition() {
+        return position;
+    }
+
+    public Param getTitle() {
+        return title;
+    }
+
+    public Param getUrl() {
+        return url;
+    }
+
+    public Param getPrice() {
+        return price;
+    }
+
+    public Param getStats() {
+        return stats;
+    }
+
+    public Param getPremium() {
+        return premium;
+    }
+
+    public Param getVip() {
+        return vip;
+    }
+
+    public Param getUrgent() {
+        return urgent;
+    }
+
+    public Param getUpped() {
+        return upped;
+    }
 }
