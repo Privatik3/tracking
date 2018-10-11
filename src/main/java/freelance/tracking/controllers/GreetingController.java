@@ -29,18 +29,13 @@ public class GreetingController {
     public String getAds(
             @ModelAttribute("time") String time,
             @ModelAttribute("sort") String sort,
-            @ModelAttribute("selectedID") String selectedID,
-            @ModelAttribute("adInfo") AdInfo adInfo, Model model) {
+            @ModelAttribute("selectedID") String selectedID, Model model) {
 
         List<AdInfo> ads = adDAO.getAdInfo(time, sort);
 
-
         if (!selectedID.isEmpty()) {
             Optional<AdInfo> any = ads.stream().filter(ad -> ad.getId().equals(selectedID)).findAny();
-            any.ifPresent(ad -> {
-                ad.setSelected(true);
-                ad.changeSelectedStatus(adInfo);
-            });
+            any.ifPresent(ad -> ad.setSelected(true));
         }
 
         model.addAttribute("ads", ads);
