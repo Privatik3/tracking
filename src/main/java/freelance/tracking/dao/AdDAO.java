@@ -82,10 +82,10 @@ public class AdDAO {
 
         String SQL = "SELECT position, price, total_view, delay_view, promotion, time FROM data JOIN schedule ON data.schedule_id = schedule.id  WHERE ad_id = ? AND schedule_id IN ( SELECT id FROM schedule WHERE task_id = ? );";
 
-        return jdbcTemplate.query(SQL, (rs, i) -> {
+        List<AdStat> adStats = jdbcTemplate.query(SQL, (rs, i) -> {
             AdStat stat = new AdStat();
 
-            stat.setPosition(rs.getInt("position"));
+            stat.setPosition(54 - rs.getInt("position"));
             stat.setPrice(rs.getString("price"));
             stat.setTotalView(rs.getInt("total_view"));
             stat.setDelayView(rs.getInt("delay_view"));
@@ -94,5 +94,15 @@ public class AdDAO {
 
             return stat;
         }, adID, taskID);
+
+        // Вычесляем значения для графика просмотров
+        for (int i = adStats.size() - 1; i > 0; i--) {
+            AdStat stat = adStats.get(i);
+            stat.setTotalView(stat.getTotalView() - adStats.get(i - 1).getTotalView());
+        }
+        adStats.get(0).setTotalView(0);
+
+
+        return adStats;
     }
 }
