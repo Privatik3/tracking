@@ -27,6 +27,11 @@ public class Param {
             status = Status.DOWN;
     }
 
+    @Override
+    public String toString() {
+        return curVal;
+    }
+
     private int prepareVal(String val) {
         return Integer.parseInt(val.split("\\(")[0].replaceAll("\\s", ""));
     }

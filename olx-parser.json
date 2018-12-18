@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "olx-parser-210716",
+  "private_key_id": "3024224e706f82c5ab3bee8752580bfd5d58a446",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDoSMjZ1hUDt2Ek\nWuccUf3m8TB4OgjX/5P1156kUqeFM0uEKXbefd5eRFb158ieQKezR2n2VOake4XW\nmXuzvMJVRuMRtOtHIHuO9nKkb06IUOCxU4e5hqe/Q+6NTnuxZbhDFYxkul1JQBA4\nojq5Co+CNuobWukXILtnsvQAXTt7Ceaqe9rxtIQ949VfV7zL0wvc/glGLdnosw62\nLdUa9po9beTf0uhLrypQAN2/jRuHZ+Z/K7ZgBxxBIHuOiTrvCj/6WU1XX6c0ob5R\nnirpqnmVsu6isbH2KtsP7dQI36HQFlZAfl8Dqe5/B4HyybtyIqrkbZNokugzECV3\ncmRqkajvAgMBAAECggEAbMzSzz34X+JALRArGlfJTqgAZQAB7nJ28nsJgrx4XOq2\n33Owiux4AL2P4eSsUnvEUTQNDOWdlsOI4AjKKVkryVfHuh586bbsSP1km2LLbQw9\nArI2a48H+Y2vKh7tzxzvHvTz6qZkVZAdSPmr+cpZh8uDAkcl0MBzJ1Jp+dWxq6IG\nIfre6XBJDVx3ajmBOQz0Oj72Z6hgBRf97YiEbymSjqr2nQWJHx7Tt5SuJlxkzTJC\nm3y/dMetGp4fPvqGZeueWI6Azdg0EkIeS4t3zLGGIHPg76rYIr2zuyaOH+mOcsuW\ncRm1nZp0qKyI65gpJQ34brIoJYAqiwouwpDpXhI8iQKBgQD3qrUwajFJ5RtHJ6M0\nG0rPfC+UCa9yga/2sW+Q+WsXUI0bSgRwp2Wn1NiHx8cOhlaWMVpVGEKeJDJZMi0C\nSllOxOR9Aox8skLZcuIeQ3Ch+MgKHAa/RHOwQ9WpgaKdIw4ZfSFtzLvdiLBC6lyh\nriIO41RBYkdPP6ROf+NxgHd1pQKBgQDwGZQjNXMUEjOFVIcHi+2kjfJwE8gjBbSv\nWBf1ZDQBr1PhLY+AmfArTdhnONwIVmGIoa+hVQ0oBWcCWkb6KvdxWnGO8BUsrHef\n5W7ny54vfuDbX3tfVDjLKyWB1Nc9MtlGdNHVBjFfb8WS6Us6OtUBiprzvXz5yc8d\nnzyWeGuoAwKBgGfSTuxBx/GzMjEs45SHUGAULhm/yaWVyf7/OMasWAFJCi4DZEMZ\nWVr2teKNk9t54zhI7hY3+k0y3UxY5VdNdYy4qxPgiqYHUFC5gSKwoLm1gZ4DS6zI\ndDrS5PGO321B8boro2TU63gdwc37UuOQDMTy9TIHkd8dzbH+mIjPEsTlAoGBAMV0\ns8B074wdH+PRzS6mpCyFVFFZ42jyA1OExkdYPfD4yKnSN0cS0lI6tfLF7yaoK5Qb\nLH4onSZBsyJbLi4E8fR15hggV7miqMqF/DyC1zfGR5QCJUsTz5U+iZ0Jdm3tCIUK\nA5sGeco7+KdGV0ivI4gd/irftg0TK9L3pvM0W40TAoGBAMa6CC3kztqCnInbdbRd\ngeWxssiYjJJmAaCfEZ8BGjB6PsHPEfZLCDxSm8siEYWTRSPct51hTvi9hKge3mj9\n+TSmPZ0HTLn/IvLyxSWyxV9+nD9XzKDUEuxFS1c+8DrfRCbIqIWKkHE6yGKtXG82\n5HkQX4luizKHQxcW7gt61Qho\n-----END PRIVATE KEY-----\n",
+  "client_email": "olx-parser@olx-parser-210716.iam.gserviceaccount.com",
+  "client_id": "114163071151015155895",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://accounts.google.com/o/oauth2/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/olx-parser%40olx-parser-210716.iam.gserviceaccount.com"
+}
