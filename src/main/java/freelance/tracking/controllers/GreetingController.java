@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,16 +28,17 @@ public class GreetingController {
     }
 
     @CrossOrigin
-    @GetMapping("/init")
-    public List<Schedule> init(
+    @RequestMapping(value = "/init", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public List<Integer> init(
             @RequestParam(name="taskID") String taskID,
             @RequestParam(name="day") String day) throws Exception {
 
         List<Schedule> schedules = adDAO.updateTask(taskID, Integer.parseInt(day));
         List<Schedule> complete = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
-        adDAO.prepareData(complete, taskID);
+        adDAO.prepareData(new ArrayList<>(complete), taskID);
 
-        return complete;
+        return complete.stream().map(Schedule::getTime).collect(Collectors.toList());
     }
 
     @CrossOrigin
