@@ -203,13 +203,16 @@ public class AdDAO {
         return result;
     }
 
-    public List<Schedule> updateTask(String taskID) {
+    public List<Schedule> updateTask(String taskID) throws Exception {
         return updateTask(taskID, -1);
     }
 
-    public List<Schedule> updateTask(String taskID, int day) {
+    public List<Schedule> updateTask(String taskID, int day) throws Exception {
 
         List<Schedule> schedule = getSchedule(taskID, day);
+        if (schedule.size() == 0)
+            throw new Exception("Не было получаено результата");
+
         List<Schedule> unDoneSchedule = schedule.stream().filter(
                 s -> s.getStatus() == Status.QUEUE || s.getStatus() == Status.PROCESSING).collect(Collectors.toList());
 

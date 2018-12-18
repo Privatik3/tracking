@@ -30,7 +30,7 @@ public class GreetingController {
     @GetMapping("/init")
     public String init(
             @RequestParam(name="taskID") String taskID,
-            @RequestParam(name="day") String day, Model model) {
+            @RequestParam(name="day") String day, Model model) throws Exception {
 
         List<Schedule> schedules = adDAO.updateTask(taskID, Integer.parseInt(day));
         List<Schedule> complete = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
