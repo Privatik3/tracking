@@ -301,7 +301,7 @@ public class AdDAO {
             public void setValues(PreparedStatement pr, int i) throws SQLException {
                 AdInfo ad = adStats.get(i);
 
-                pr.setInt(1, Integer.parseInt(taskID));
+                pr.setInt(1, ad.getScheduleID());
                 pr.setInt(2, Integer.parseInt(ad.getId()));
                 pr.setInt(3, Integer.parseInt(ad.getPosition().toString()));
                 pr.setString(4,

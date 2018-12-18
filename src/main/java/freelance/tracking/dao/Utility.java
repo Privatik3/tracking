@@ -162,6 +162,7 @@ public class Utility {
                     try {
                         AdInfo ad = new AdInfo();
 
+                        ad.setScheduleID(id);
                         String url = getDataFromRow(row, 13);
                         ad.setId(url.substring(url.lastIndexOf("_") + 1));
                         ad.setUrl(new Param(url));
