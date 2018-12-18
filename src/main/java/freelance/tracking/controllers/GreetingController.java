@@ -28,16 +28,15 @@ public class GreetingController {
 
     @CrossOrigin
     @GetMapping("/init")
-    public String init(
+    public List<Schedule> init(
             @RequestParam(name="taskID") String taskID,
-            @RequestParam(name="day") String day, Model model) throws Exception {
+            @RequestParam(name="day") String day) throws Exception {
 
         List<Schedule> schedules = adDAO.updateTask(taskID, Integer.parseInt(day));
         List<Schedule> complete = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
         adDAO.prepareData(complete, taskID);
 
-        model.addAttribute("schedules", complete);
-        return "init";
+        return complete;
     }
 
     @CrossOrigin
