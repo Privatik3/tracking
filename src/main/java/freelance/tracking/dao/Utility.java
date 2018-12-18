@@ -162,7 +162,7 @@ public class Utility {
                     try {
                         AdInfo ad = new AdInfo();
 
-                        String url = getDataFromRow(row, 18);
+                        String url = getDataFromRow(row, 13);
                         ad.setId(url.substring(url.lastIndexOf("_") + 1));
                         ad.setUrl(new Param(url));
 
@@ -212,10 +212,10 @@ public class Utility {
             String name = param.get("name").asText();
             String value = param.get("value").asText();
 
-            if (!value.isEmpty())
+            if (!value.isEmpty()) {
                 result.put(name, value);
-
-            System.out.println("    *" + name + ": " + value);
+                System.out.println("    *" + name + ": " + value);
+            }
         }
 
         return result;

@@ -10,12 +10,15 @@ import freelance.tracking.dao.entity.report.Up;
 import freelance.tracking.dao.entity.schedule.Status;
 import freelance.tracking.dao.entity.schedule.Schedule;
 import freelance.tracking.dao.entity.task.Record;
+import freelance.tracking.dao.entity.task.TaskLimitException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -320,8 +323,53 @@ public class AdDAO {
         });
     }
 
-    public void createTaskRecord(Record record) {
+    public void createTaskRecord(Record record) throws TaskLimitException {
 
-        System.out.println(record);
+        checkUserLimit(record.getNick());
+
+        final String INSERT_SQL = "INSERT INTO task (nick, title, all_time, status) VALUES ( ?, ?, ?, ? )";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(
+                connection -> {
+                    PreparedStatement ps =
+                            connection.prepareStatement(INSERT_SQL, new String[]{"id"});
+                    ps.setString(1, record.getNick());
+                    ps.setString(2, record.getTitle());
+                    ps.setInt(3, record.getAllTime());
+                    ps.setInt(4, record.getStatus().ordinal());
+                    return ps;
+                },
+                keyHolder);
+
+        insertParams(String.valueOf(keyHolder.getKey()), record.getParams());
+    }
+
+    private void checkUserLimit(String nick) throws TaskLimitException {
+        String SQL = "SELECT COUNT( id ) FROM task WHERE nick = ?";
+        Integer limit = jdbcTemplate.queryForObject(SQL, Integer.class, nick);
+
+        if (limit > 0)
+            throw new TaskLimitException("Превышен лимит запросов, не возможно создать больше одного запроса");
+    }
+
+    private void insertParams(String taskID, HashMap<String, String> params) {
+
+        String SQL = "INSERT INTO task_param ( task_id, name, value ) VALUES ( ?, ?, ? )";
+        Iterator<Map.Entry<String, String>> paramItr = params.entrySet().iterator();
+
+        jdbcTemplate.batchUpdate(SQL, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Map.Entry<String, String> param = paramItr.next();
+                ps.setString(1, taskID);
+                ps.setString(2, param.getKey());
+                ps.setString(3, param.getValue());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return params.size();
+            }
+        });
     }
 }
