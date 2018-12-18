@@ -42,7 +42,7 @@ public class TaskController {
             record.setStatus(Status.WAIT);
 
             adDAO.createTaskRecord(record);
-            return ResponseEntity.ok("");
+            return ResponseEntity.ok("{}");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось добавить запрос в очередь.");

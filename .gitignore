@@ -4,3 +4,4 @@
 /src/main/resources/application.properties
 /src/test/
 reports/
+/olx-parser.json
