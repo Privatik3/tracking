@@ -325,7 +325,9 @@ public class AdDAO {
 
     public void createTaskRecord(Record record) throws TaskLimitException {
 
-        checkUserLimit(record.getNick());
+//        checkUserLimit(record.getNick());
+
+        System.out.println(record.getTitle());
 
         final String INSERT_SQL = "INSERT INTO task (nick, title, all_time, status) VALUES ( ?, ?, ?, ? )";
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -341,7 +343,7 @@ public class AdDAO {
                 },
                 keyHolder);
 
-        insertParams(String.valueOf(keyHolder.getKey()), record.getParams());
+//        insertParams(String.valueOf(keyHolder.getKey()), record.getParams());
     }
 
     private void checkUserLimit(String nick) throws TaskLimitException {
@@ -371,5 +373,23 @@ public class AdDAO {
                 return params.size();
             }
         });
+    }
+
+    public List<Record> getHistory(String nick) {
+
+        String SQL = "SELECT * FROM task WHERE nick = ?";
+        return jdbcTemplate.query(SQL, (rs, i) -> {
+            Record record = new Record();
+
+            record.setId(rs.getInt("id"));
+            record.setNick(rs.getString("nick"));
+            record.setTitle(rs.getString("title"));
+            record.setAddTime(rs.getDate("add_time"));
+            record.setTime(rs.getInt("time"));
+            record.setAllTime(rs.getInt("all_time"));
+            record.setStatus(freelance.tracking.dao.entity.task.Status.values()[rs.getInt("status")]);
+
+            return record;
+        }, nick);
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.springframework.web.bind.annotation.RequestMethod.POST;
 
@@ -29,7 +30,7 @@ public class TaskController {
     @CrossOrigin
     @RequestMapping(value = "/add_task", method = POST, produces = "application/json")
     @ResponseBody
-    public ResponseEntity<String> addDelayTask(@RequestBody String param, HttpServletRequest request) {
+    public ResponseEntity<String> addDelayTask(@RequestBody String param) {
 
         try {
             HashMap<String, String> params = Utility.parseTaskParams(param);
@@ -57,7 +58,7 @@ public class TaskController {
             adDAO.createTaskRecord(record);
             return ResponseEntity.ok("{}");
         } catch (TaskLimitException e) {
-            e.printStackTrace();
+            System.err.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
@@ -78,5 +79,12 @@ public class TaskController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @CrossOrigin
+    @RequestMapping(value = "/history", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public List<Record> getHistory(@RequestParam(name = "nick") String nick)  {
+        return adDAO.getHistory( nick );
     }
 }
