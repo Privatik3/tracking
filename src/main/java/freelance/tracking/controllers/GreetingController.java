@@ -2,17 +2,20 @@ package freelance.tracking.controllers;
 
 
 import freelance.tracking.dao.AdDAO;
+import freelance.tracking.dao.Utility;
 import freelance.tracking.dao.entity.AdInfo;
 import freelance.tracking.dao.entity.AdStat;
 import freelance.tracking.dao.entity.Report;
 import freelance.tracking.dao.entity.schedule.Schedule;
 import freelance.tracking.dao.entity.schedule.Status;
+import freelance.tracking.dao.entity.task.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -84,7 +87,6 @@ public class GreetingController {
     @GetMapping("/update")
     public void update() {
 
-        int taskID = 2;
 
     }
 }

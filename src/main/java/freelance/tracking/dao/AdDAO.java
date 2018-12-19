@@ -12,8 +12,10 @@ import freelance.tracking.dao.entity.schedule.Schedule;
 import freelance.tracking.dao.entity.task.Record;
 import freelance.tracking.dao.entity.task.TaskLimitException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -49,29 +51,34 @@ public class AdDAO {
         AtomicInteger scheduleMax = new AtomicInteger();
         List<AdInfo> ads = jdbcTemplate.query(SQL, (rs, i) -> {
             AdInfo ad = new AdInfo();
+            try {
+                int scheduleID = rs.getInt("schedule_id");
+                ad.setScheduleID(scheduleID);
+                if (scheduleMax.get() < scheduleID)
+                    scheduleMax.set(scheduleID);
 
-            int scheduleID = rs.getInt("schedule_id");
-            ad.setScheduleID(scheduleID);
-            if (scheduleMax.get() < scheduleID)
-                scheduleMax.set(scheduleID);
+                ad.setId(rs.getString("ad_id"));
+                ad.setPosition(new Param(rs.getString("position")));
+                ad.setTitle(new Param(rs.getString("title")));
+                ad.setUrl(new Param(rs.getString("url")));
+                ad.setPrice(new Param(rs.getString("price")));
 
-            ad.setId(rs.getString("ad_id"));
-            ad.setPosition(new Param(rs.getString("position")));
-            ad.setTitle(new Param(rs.getString("title")));
-            ad.setUrl(new Param(rs.getString("url")));
-            ad.setPrice(new Param(rs.getString("price")));
+                int totalView = rs.getInt("total_view");
+                int delayView = rs.getInt("delay_view");
 
-            int totalView = rs.getInt("total_view");
-            int delayView = rs.getInt("delay_view");
+                ad.setStats(new Param(String.format("%d (+%d)", totalView, delayView)));
+                ad.setOld(totalView == delayView);
 
-            ad.setStats(new Param(String.format("%d (+%d)", totalView, delayView)));
-            ad.setOld(totalView == delayView);
+                String prom = rs.getString("promotion");
+                ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));
+                ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
+                ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
+                ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
 
-            String prom = rs.getString("promotion");
-            ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));
-            ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
-            ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
-            ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
+                return ad;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             return ad;
         }, Integer.parseInt(time) - 1, time);
@@ -118,7 +125,6 @@ public class AdDAO {
             stat.setTotalView(stat.getTotalView() - adStats.get(i - 1).getTotalView());
         }
         adStats.get(0).setTotalView(0);
-
 
         return adStats;
     }
@@ -226,6 +232,25 @@ public class AdDAO {
         return schedule;
     }
 
+    public void createSchedules( List<Schedule> newSchedule ) {
+
+        String INSERT_SQL = "INSERT INTO schedule (task_id, time, status) VALUES ( ?, ?, ? )";
+        jdbcTemplate.batchUpdate(INSERT_SQL, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Schedule schedule = newSchedule.get(i);
+                ps.setInt(1, schedule.getTaskId());
+                ps.setInt(2, schedule.getTime());
+                ps.setInt(3, schedule.getStatus().ordinal());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return newSchedule.size();
+            }
+        });
+    }
+
     private List<Schedule> getSchedule(String taskID, int day) {
         String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %s %s",
                 taskID, (day == -1 ? "" : String.format("LIMIT %d OFFSET %d", 24, day * 24)));
@@ -235,6 +260,7 @@ public class AdDAO {
             public Schedule mapRow(ResultSet rs, int i) throws SQLException {
                 return Schedule.builder()
                         .id(rs.getInt("id"))
+                        .taskId(Integer.parseInt(taskID))
                         .time(rs.getInt("time"))
                         .report(rs.getString("report"))
                         .status(Status.values()[rs.getInt("status")]).build();
@@ -328,10 +354,7 @@ public class AdDAO {
 
     public void createTaskRecord(Record record) throws TaskLimitException {
 
-//        checkUserLimit(record.getNick());
-
-        System.out.println(record.getTitle());
-
+        checkUserLimit(record.getNick());
         final String INSERT_SQL = "INSERT INTO task (nick, title, all_time, status) VALUES ( ?, ?, ?, ? )";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
@@ -346,7 +369,7 @@ public class AdDAO {
                 },
                 keyHolder);
 
-//        insertParams(String.valueOf(keyHolder.getKey()), record.getParams());
+        insertParams(String.valueOf(keyHolder.getKey()), record.getParams());
     }
 
     private void checkUserLimit(String nick) throws TaskLimitException {
@@ -378,21 +401,62 @@ public class AdDAO {
         });
     }
 
-    public List<Record> getHistory(String nick) {
+    public List<Record> getNotReadyTasks() {
+        String SQL = "SELECT * FROM task WHERE NOT status = 0";
+        List<Record> notReady = jdbcTemplate.query(SQL, getRecordMapper());
 
-        String SQL = "SELECT * FROM task WHERE nick = ?";
-        return jdbcTemplate.query(SQL, (rs, i) -> {
-            Record record = new Record();
+        Iterator<Record> iterator = notReady.iterator();
+        while (iterator.hasNext()) {
+            Record record = iterator.next();
+            HashMap<String, String> params = getTaskParams(record.getId());
+            if (params.size() == 0)
+                iterator.remove();
 
-            record.setId(rs.getInt("id"));
-            record.setNick(rs.getString("nick"));
-            record.setTitle(rs.getString("title"));
-            record.setAddTime(rs.getDate("add_time"));
-            record.setTime(rs.getInt("time"));
-            record.setAllTime(rs.getInt("all_time"));
-            record.setStatus(freelance.tracking.dao.entity.task.Status.values()[rs.getInt("status")]);
+            record.setParams(params);
+        }
 
-            return record;
-        }, nick);
+        return notReady;
     }
+
+    private HashMap<String, String> getTaskParams(int taskID) {
+        String SQL = "SELECT name, value FROM task_param where task_id = ?";
+
+        HashMap<String, String> params = new HashMap<>();
+        try {
+            jdbcTemplate.query(SQL, rs -> {
+                params.put(
+                        rs.getString("name"),
+                        rs.getString("value"));
+            }, taskID);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return params;
+    }
+
+    public List<Record> getHistory(String nick) {
+        String SQL = "SELECT * FROM task WHERE nick = ?";
+        return jdbcTemplate.query(SQL, getRecordMapper(), nick);
+    }
+
+    private RowMapper<Record> getRecordMapper() {
+        return new RowMapper<Record>() {
+            @Override
+            public Record mapRow(ResultSet rs, int i) throws SQLException {
+                Record record = new Record();
+
+                record.setId(rs.getInt("id"));
+                record.setNick(rs.getString("nick"));
+                record.setTitle(rs.getString("title"));
+                record.setAddTime(rs.getDate("add_time"));
+                record.setTime(rs.getInt("time"));
+                record.setAllTime(rs.getInt("all_time"));
+                record.setStatus(freelance.tracking.dao.entity.task.Status.values()[rs.getInt("status")]);
+
+                return record;
+            }
+        };
+    }
+
 }

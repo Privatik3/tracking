@@ -68,7 +68,7 @@ public class TaskController {
     @CrossOrigin
     @RequestMapping(value = "/remove_task", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public ResponseEntity<String> getHistory(
+    public ResponseEntity<String> removeTask(
             @RequestParam(name = "serverID") Integer serverID,
             @RequestParam(name = "taskID") Integer taskID) {
 
@@ -84,6 +84,6 @@ public class TaskController {
     @RequestMapping(value = "/history", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public List<Record> getHistory(@RequestParam(name = "nick") String nick)  {
-        return adDAO.getHistory( nick );
+        return adDAO.getHistory( nick);
     }
 }

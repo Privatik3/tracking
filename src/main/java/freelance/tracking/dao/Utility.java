@@ -10,10 +10,10 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import freelance.tracking.dao.entity.AdInfo;
-import freelance.tracking.dao.entity.AdStat;
-import freelance.tracking.dao.entity.Param;
 import freelance.tracking.dao.entity.schedule.Schedule;
 import freelance.tracking.dao.entity.schedule.Status;
+import freelance.tracking.dao.entity.task.Param;
+import freelance.tracking.dao.entity.task.Parameters;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -79,14 +79,18 @@ public class Utility {
 
     public static void requestUpdate(List<Schedule> notFull) {
         try {
-            List<String> tokens = notFull.stream().map(nf -> "trk_" + nf.getId()).collect(Collectors.toList());
-            String body = jsonPost("http://localhost:8080/historyByTokens", mapper.writeValueAsString(tokens));
+            List<String> tokens = notFull.stream().map(nf -> String.format("trk_%s_%s", nf.getTaskId(), nf.getTime())).collect(Collectors.toList());
+            String body = jsonPost("http://185.139.69.108:8080/historyByTokens", mapper.writeValueAsString(tokens));
             for (JsonNode task : mapper.readTree(body)) {
                 try {
-                    Integer taskID = Integer.parseInt(task.get("nick").asText().substring(4));
-                    Optional<Schedule> target = notFull.stream().filter(nf -> nf.getId() == taskID).findFirst();
+                    String[] nick = task.get("nick").asText().split("_");
+                    Integer taskId = Integer.parseInt(nick[1]);
+                    Integer time = Integer.parseInt(nick[2]);
+                    Optional<Schedule> target = notFull.stream().filter(
+                            nf -> (nf.getTaskId() == taskId && nf.getTime() == time)).findFirst();
                     target.ifPresent(t -> t.updateInfo(Schedule.builder()
                             .id(t.getId())
+                            .taskId(t.getTaskId())
                             .time(t.getTime())
                             .report(task.get("reportUrl").asText())
                             .status(Status.valueOf(task.get("status").asText())).build())
@@ -165,19 +169,19 @@ public class Utility {
                         ad.setScheduleID(id);
                         String url = getDataFromRow(row, 13);
                         ad.setId(url.substring(url.lastIndexOf("_") + 1));
-                        ad.setUrl(new Param(url));
+                        ad.setUrl(new freelance.tracking.dao.entity.Param(url));
 
-                        ad.setTitle(new Param(getDataFromRow(row, 1)));
-                        ad.setPosition(new Param(getDataFromRow(row, 0)));
-                        ad.setPrice(new Param(getDataFromRow(row, 2)));
-                        ad.setStats(new Param(String.format("%s (+%s)",
+                        ad.setTitle(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 1)));
+                        ad.setPosition(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 0)));
+                        ad.setPrice(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 2)));
+                        ad.setStats(new freelance.tracking.dao.entity.Param(String.format("%s (+%s)",
                                 getDataFromRow(row, 4), getDataFromRow(row, 5))));
 
                         String prom = getDataFromRow(row, 7);
-                        ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));
-                        ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
-                        ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
-                        ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
+                        ad.setPremium(new freelance.tracking.dao.entity.Param(prom.contains("1") ? "1" : "0"));
+                        ad.setVip(new freelance.tracking.dao.entity.Param(prom.contains("2") ? "1" : "0"));
+                        ad.setUrgent(new freelance.tracking.dao.entity.Param(prom.contains("3") ? "1" : "0"));
+                        ad.setUpped(new freelance.tracking.dao.entity.Param(prom.contains("4") ? "1" : "0"));
 
                         adStats.add(ad);
                     } catch (Exception ignore) {}
@@ -218,6 +222,23 @@ public class Utility {
                 System.out.println("    *" + name + ": " + value);
             }
         }
+
+        return result;
+    }
+
+    public static void sendDelayTask( HashMap<String, String> param ) throws Exception {
+        jsonPost(
+                "http://185.139.69.108:8080/add_task",
+                mapper.writeValueAsString(new Parameters(convertToPropFormat(param)))
+        );
+    }
+
+    private static Param[] convertToPropFormat(HashMap<String, String> params) {
+        Param[] result = new Param[params.size()];
+
+        int paramIndex = 0;
+        for (Map.Entry<String, String> param: params.entrySet())
+            result[paramIndex++] = new Param(param.getKey(), param.getValue());
 
         return result;
     }
