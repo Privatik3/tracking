@@ -75,13 +75,23 @@ public class GreetingController {
     @CrossOrigin
     @GetMapping("/stat")
     public String stat(
-            @RequestParam(name="taskID", required=false, defaultValue="2") String taskID,
+            @RequestParam(name="taskID", required=false, defaultValue="11") String taskID,
             @RequestParam(name="adID", required=false, defaultValue="1439859209") String adID, Model model) {
 
         List<AdStat> stats = adDAO.getAdStat(adID, taskID);
         model.addAttribute("stats", stats);
         return "stat";
     }
+
+    /*@CrossOrigin
+    @RequestMapping(value = "/stat", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public List<AdStat> stat(
+            @RequestParam(name="taskID") String taskID,
+            @RequestParam(name="adID") String adID) {
+
+        return adDAO.getAdStat(adID, taskID);
+    }*/
 
     @CrossOrigin
     @GetMapping("/update")

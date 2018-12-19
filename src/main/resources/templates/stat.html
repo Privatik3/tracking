@@ -19,7 +19,9 @@
 
 <script th:inline="javascript">
     var count = 0;
-    var lables = ["11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00"];
+    var lables = [
+        "00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00",
+        "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"];
 
     function drawChar() {
         var data = [];
@@ -64,7 +66,7 @@
                         },
                         label: function (item, data) {
                             var datasetLabel = data.datasets[item.datasetIndex].label || '';
-                            return datasetLabel + ': ' + (54 - +item.yLabel);
+                            return datasetLabel + ': ' + (60 - +item.yLabel);
                         }
                     }
                 },
@@ -72,7 +74,7 @@
                     yAxes: [{
                         ticks: {
                             callback: function (value, index, values) {
-                                var yTitle = 54 - +value;
+                                var yTitle = 60 - +value;
                                 return yTitle % 1 === 0 ? yTitle : '';
                             }
                         }

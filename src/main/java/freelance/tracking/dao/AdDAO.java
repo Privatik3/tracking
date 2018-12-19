@@ -109,7 +109,7 @@ public class AdDAO {
         List<AdStat> adStats = jdbcTemplate.query(SQL, (rs, i) -> {
             AdStat stat = new AdStat();
 
-            stat.setPosition(54 - rs.getInt("position"));
+            stat.setPosition(60 - rs.getInt("position"));
             stat.setPrice(rs.getString("price"));
             stat.setTotalView(rs.getInt("total_view"));
             stat.setDelayView(rs.getInt("delay_view"));
@@ -335,8 +335,11 @@ public class AdDAO {
                                 ad.getTitle().toString().substring(0, 100 - 3) + "...");
                 pr.setString(5, ad.getUrl().toString());
                 pr.setString(6, ad.getPrice().toString());
-                pr.setInt(7, Integer.parseInt("10"));
-                pr.setInt(8, Integer.parseInt("20"));
+
+                String[] stata = ad.getStats().toString().split(" \\(\\+");
+                pr.setInt(7, Integer.parseInt(stata[0]));
+                pr.setInt(8, Integer.parseInt(stata[1].replace(")", "")));
+
                 pr.setString(9,
                         (ad.getPremium().toString().equals("1") ? "1" : "")
                                 + (ad.getVip().toString().equals("1") ? "2" : "")

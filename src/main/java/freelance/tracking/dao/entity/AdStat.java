@@ -18,7 +18,7 @@ public class AdStat {
     }
 
     public void setTimePos(String timePos) {
-        this.timePos = timePos + ":00";
+        this.timePos = String.format("%02d:00", Integer.parseInt(timePos));
     }
 
     public int getPosition() {
