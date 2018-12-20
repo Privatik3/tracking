@@ -1,6 +1,8 @@
 package freelance.tracking.controllers;
 
 
+import freelance.tracking.TimerDownloadTask;
+import freelance.tracking.TimerUpdateTask;
 import freelance.tracking.dao.AdDAO;
 import freelance.tracking.dao.Utility;
 import freelance.tracking.dao.entity.AdInfo;
@@ -14,10 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -37,9 +36,9 @@ public class GreetingController {
             @RequestParam(name="taskID") String taskID,
             @RequestParam(name="day") String day) throws Exception {
 
-        List<Schedule> schedules = adDAO.updateTask(taskID, Integer.parseInt(day));
+        List<Schedule> schedules = adDAO.updateTask(Integer.parseInt(taskID), Integer.parseInt(day));
         List<Schedule> complete = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
-        adDAO.prepareData(new ArrayList<>(complete), taskID);
+        adDAO.prepareData(new ArrayList<>(complete), Integer.parseInt(taskID));
 
         return complete.stream().map(Schedule::getTime).collect(Collectors.toList());
     }
@@ -73,17 +72,6 @@ public class GreetingController {
     }
 
     @CrossOrigin
-    @GetMapping("/stat")
-    public String stat(
-            @RequestParam(name="taskID", required=false, defaultValue="11") String taskID,
-            @RequestParam(name="adID", required=false, defaultValue="1439859209") String adID, Model model) {
-
-        List<AdStat> stats = adDAO.getAdStat(adID, taskID);
-        model.addAttribute("stats", stats);
-        return "stat";
-    }
-
-    /*@CrossOrigin
     @RequestMapping(value = "/stat", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public List<AdStat> stat(
@@ -91,12 +79,18 @@ public class GreetingController {
             @RequestParam(name="adID") String adID) {
 
         return adDAO.getAdStat(adID, taskID);
-    }*/
+    }
 
     @CrossOrigin
     @GetMapping("/update")
+    @ResponseBody
     public void update() {
+        Date date = new Date();
+        int timerOffset = (60 - date.getMinutes()) * 60_000;
+        timerOffset += (60 - date.getSeconds()) * 1_000;
 
-
+        System.out.println("-------------------- START TIMER --------------------");
+        new Timer().schedule(new TimerDownloadTask(adDAO), timerOffset, 60 * 60 * 1000);
+        new Timer().schedule(new TimerUpdateTask(adDAO), (timerOffset + (10 * 60 * 1000)), 15 * 60 * 1000);
     }
 }

@@ -34,6 +34,9 @@ public class TaskController {
         try {
             HashMap<String, String> params = Utility.parseTaskParams(param);
 
+            // Ограничиваем количество страниц
+            params.putIfAbsent("max_pages", "1");
+
             // Проводим настройку фильтров
             params.putIfAbsent("position", "true");
 
@@ -48,7 +51,7 @@ public class TaskController {
             Record record = new Record();
             record.setTitle(params.get("title").replaceAll("\\s\\|\\s\\d+-.*$", ""));
             record.setNick(params.get("token"));
-            record.setAllTime(Integer.parseInt(params.get("days")) * 24);
+            record.setAllTime((Integer.parseInt(params.get("days")) * 24) - 1);
             params.remove("days");
 
             record.setParams(params);
@@ -68,13 +71,21 @@ public class TaskController {
     @CrossOrigin
     @RequestMapping(value = "/remove_task", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public ResponseEntity<String> removeTask(
-            @RequestParam(name = "serverID") Integer serverID,
-            @RequestParam(name = "taskID") Integer taskID) {
-
+    public ResponseEntity<String> removeTask(@RequestParam(name = "taskID") Integer taskID) {
         try {
-            // TODO Реализовать удаление таска
-            return ResponseEntity.ok(null);
+            /*  1. Чистим таблицу data
+                2. Удаляем папру таска
+                3. Чистим schedule
+                4. Чистим task_param
+                5. Удаляем сам таск */
+
+            adDAO.clearData(taskID);
+            Utility.clearTaskReports(taskID);
+            adDAO.clearSchedule(taskID);
+            adDAO.clearTaskParams(taskID);
+            adDAO.removeTask(taskID);
+
+            return ResponseEntity.ok("{}");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

@@ -209,11 +209,11 @@ public class AdDAO {
         return result;
     }
 
-    public List<Schedule> updateTask(String taskID) throws Exception {
+    public List<Schedule> updateTask(int taskID) throws Exception {
         return updateTask(taskID, -1);
     }
 
-    public List<Schedule> updateTask(String taskID, int day) throws Exception {
+    public List<Schedule> updateTask(int taskID, int day) throws Exception {
 
         List<Schedule> schedule = getSchedule(taskID, day);
         if (schedule.size() == 0)
@@ -251,8 +251,8 @@ public class AdDAO {
         });
     }
 
-    private List<Schedule> getSchedule(String taskID, int day) {
-        String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %s %s",
+    private List<Schedule> getSchedule(int taskID, int day) {
+        String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %d %s",
                 taskID, (day == -1 ? "" : String.format("LIMIT %d OFFSET %d", 24, day * 24)));
 
         return jdbcTemplate.query(SQL, new RowMapper<Schedule>() {
@@ -260,7 +260,7 @@ public class AdDAO {
             public Schedule mapRow(ResultSet rs, int i) throws SQLException {
                 return Schedule.builder()
                         .id(rs.getInt("id"))
-                        .taskId(Integer.parseInt(taskID))
+                        .taskId(taskID)
                         .time(rs.getInt("time"))
                         .report(rs.getString("report"))
                         .status(Status.values()[rs.getInt("status")]).build();
@@ -297,9 +297,11 @@ public class AdDAO {
         });
     }
 
-    public void prepareData(List<Schedule> complete, String taskID) {
+    public void prepareData(List<Schedule> complete, int taskID) {
+        if (complete.size() == 0)
+            return;
 
-        String SQL = "SELECT DISTINCT schedule_id FROM data WHERE schedule_id IN (:ids)";
+        String SQL = "SELECT DISTINCT schedule_id FROM data WHERE schedule_id IN ( :ids )";
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue("ids", complete.stream().map(c -> c.getId()).collect(Collectors.toList()));
 
@@ -318,7 +320,7 @@ public class AdDAO {
         insertData(adStats, taskID);
     }
 
-    public void insertData(List<AdInfo> adStats, String taskID) {
+    public void insertData(List<AdInfo> adStats, int taskID) {
 
         String INSER_SQL = "INSERT INTO data (schedule_id, ad_id, position, title, url, price, total_view, delay_view, promotion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -405,7 +407,7 @@ public class AdDAO {
     }
 
     public List<Record> getNotReadyTasks() {
-        String SQL = "SELECT * FROM task WHERE NOT status = 0";
+        String SQL = "SELECT * FROM task WHERE NOT status = 2";
         List<Record> notReady = jdbcTemplate.query(SQL, getRecordMapper());
 
         Iterator<Record> iterator = notReady.iterator();
@@ -462,4 +464,44 @@ public class AdDAO {
         };
     }
 
+    public void updatetaskInfo(List<Record> records) {
+
+        String UPDATE_SQL = "UPDATE task SET time = ?, status = ? WHERE id = ?";
+        jdbcTemplate.batchUpdate(UPDATE_SQL, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Record record = records.get(i);
+
+                ps.setInt(1, record.getTime());
+                ps.setInt(2, record.getStatus().ordinal());
+                ps.setInt(3, record.getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return records.size();
+            }
+        });
+
+    }
+
+    public void clearData(Integer taskID) {
+        String DELETE_SQL = "DELETE FROM data WHERE schedule_id IN ( SELECT id FROM schedule WHERE task_id = ? )";
+        jdbcTemplate.update(DELETE_SQL, taskID);
+    }
+
+    public void clearSchedule(Integer taskID) {
+        String DELETE_SQL = "DELETE FROM schedule WHERE task_id = ?";
+        jdbcTemplate.update(DELETE_SQL, taskID);
+    }
+
+    public void clearTaskParams(Integer taskID) {
+        String DELETE_SQL = "DELETE FROM task_param WHERE task_id = ?";
+        jdbcTemplate.update(DELETE_SQL, taskID);
+    }
+
+    public void removeTask(Integer taskID) {
+        String DELETE_SQL = "DELETE FROM task WHERE id = ?";
+        jdbcTemplate.update(DELETE_SQL, taskID);
+    }
 }

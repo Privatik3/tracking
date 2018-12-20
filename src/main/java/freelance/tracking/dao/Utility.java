@@ -53,6 +53,24 @@ public class Utility {
         }
     }
 
+    public static void clearTaskReports(Integer taskID) {
+
+        try {
+            File taskFolder = new File("reports/" + taskID);
+            if (taskFolder.exists()) {
+                String[] entries = taskFolder.list();
+                for (String s : entries) {
+                    File currentFile = new File(taskFolder.getPath(), s);
+                    currentFile.delete();
+                }
+                taskFolder.delete();
+            }
+        } catch (Exception e) {
+            System.err.println("Не удалось зачистить папку таска");
+            e.printStackTrace();
+        }
+    }
+
     @Autowired
     public void setAdDAO(AdDAO adDAO) {
         Utility.adDAO = adDAO;
@@ -80,7 +98,7 @@ public class Utility {
     public static void requestUpdate(List<Schedule> notFull) {
         try {
             List<String> tokens = notFull.stream().map(nf -> String.format("trk_%s_%s", nf.getTaskId(), nf.getTime())).collect(Collectors.toList());
-            String body = jsonPost("http://185.139.69.108:8080/historyByTokens", mapper.writeValueAsString(tokens));
+            String body = jsonPost("http://localhost:8080/historyByTokens", mapper.writeValueAsString(tokens));
             for (JsonNode task : mapper.readTree(body)) {
                 try {
                     String[] nick = task.get("nick").asText().split("_");
@@ -95,14 +113,15 @@ public class Utility {
                             .report(task.get("reportUrl").asText())
                             .status(Status.valueOf(task.get("status").asText())).build())
                     );
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void checkDownloaded(String taskID, List<Schedule> schedules) {
+    public static void checkDownloaded(int taskID, List<Schedule> schedules) {
 
         String PATH = "reports/" + taskID;
 
@@ -148,7 +167,7 @@ public class Utility {
                 .build();
     }
 
-    public static List<AdInfo> prepareData(List<Schedule> schedules, String taskID) {
+    public static List<AdInfo> prepareData(List<Schedule> schedules, int taskID) {
 
         String PATH = String.format("reports/%s/", taskID);
 
@@ -184,7 +203,8 @@ public class Utility {
                         ad.setUpped(new freelance.tracking.dao.entity.Param(prom.contains("4") ? "1" : "0"));
 
                         adStats.add(ad);
-                    } catch (Exception ignore) {}
+                    } catch (Exception ignore) {
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -198,9 +218,12 @@ public class Utility {
         Cell cell = row.getCell(cellIndex);
         try {
             switch (cell.getCellType()) {
-                case STRING: return cell.getStringCellValue();
-                case NUMERIC: return String.valueOf(cell.getNumericCellValue()).replace(".0", "");
-                default: return "";
+                case STRING:
+                    return cell.getStringCellValue();
+                case NUMERIC:
+                    return String.valueOf(cell.getNumericCellValue()).replace(".0", "");
+                default:
+                    return "";
             }
         } catch (Exception ignore) {
             return "";
@@ -226,9 +249,9 @@ public class Utility {
         return result;
     }
 
-    public static void sendDelayTask( HashMap<String, String> param ) throws Exception {
+    public static void sendDelayTask(HashMap<String, String> param) throws Exception {
         jsonPost(
-                "http://185.139.69.108:8080/add_task",
+                "http://localhost:8080/add_task",
                 mapper.writeValueAsString(new Parameters(convertToPropFormat(param)))
         );
     }
@@ -237,7 +260,7 @@ public class Utility {
         Param[] result = new Param[params.size()];
 
         int paramIndex = 0;
-        for (Map.Entry<String, String> param: params.entrySet())
+        for (Map.Entry<String, String> param : params.entrySet())
             result[paramIndex++] = new Param(param.getKey(), param.getValue());
 
         return result;
