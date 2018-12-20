@@ -55,7 +55,6 @@ public class GreetingController {
     @CrossOrigin
     @PostMapping("/get-ads")
     public String getAds(
-            @ModelAttribute("day") String day,
             @ModelAttribute("time") String time,
             @ModelAttribute("sort") String sort,
             @ModelAttribute("selectedID") String selectedID, Model model) {
