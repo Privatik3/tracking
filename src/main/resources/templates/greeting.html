@@ -32,7 +32,7 @@
 
                         <div style="display: flex;padding: 5px 0 2px;">
                             <div class="get-price" id="avito_price">
-                                <div><span class="label-primary" th:text="${ad.getPrice().getCurVal()} + ' ₽'" /></div>
+                                <div><span class="label-primary" th:classappend="${ad.getPrice().getCurVal().length() > 10} ? bigPrice : ''" th:text="${ad.getPrice().getCurVal()} + (${ad.getPrice().getCurVal().length() > 10} ? '' : ' ₽')" /></div>
                             </div>
                             <div class="get-stats">
                                 <i class="monetization-icon_vas-premium-2" style="background-image: url(https://www.avito.st/s/cc/resources/01896f91cd69.svg);"></i>
