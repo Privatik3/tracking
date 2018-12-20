@@ -3,7 +3,6 @@ package freelance.tracking.dao.entity;
 public class AdStat {
 
     private int position;
-    private int price;
     private int totalView;
     private int delayView;
     private String timePos;
@@ -27,14 +26,6 @@ public class AdStat {
 
     public void setPosition(int position) {
         this.position = position;
-    }
-
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(String price) {
-        this.price = Integer.parseInt(price.replaceAll("\\s", ""));
     }
 
     public int getTotalView() {

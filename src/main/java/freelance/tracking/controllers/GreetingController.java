@@ -55,7 +55,6 @@ public class GreetingController {
     @CrossOrigin
     @PostMapping("/get-ads")
     public String getAds(
-            @ModelAttribute("day") String day,
             @ModelAttribute("time") String time,
             @ModelAttribute("sort") String sort,
             @ModelAttribute("selectedID") String selectedID, Model model) {
@@ -75,10 +74,11 @@ public class GreetingController {
     @RequestMapping(value = "/stat", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public List<AdStat> stat(
+            @ModelAttribute("day") String day,
             @RequestParam(name="taskID") String taskID,
             @RequestParam(name="adID") String adID) {
 
-        return adDAO.getAdStat(adID, taskID);
+        return adDAO.getAdStat(adID, taskID, Integer.parseInt(day));
     }
 
     @CrossOrigin

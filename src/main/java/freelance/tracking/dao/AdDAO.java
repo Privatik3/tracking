@@ -102,15 +102,16 @@ public class AdDAO {
         return ads;
     }
 
-    public List<AdStat> getAdStat(String adID, String taskID) {
+    public List<AdStat> getAdStat(String adID, String taskID, int day) {
 
-        String SQL = "SELECT position, price, total_view, delay_view, promotion, time FROM data JOIN schedule ON data.schedule_id = schedule.id  WHERE ad_id = ? AND schedule_id IN ( SELECT id FROM schedule WHERE task_id = ? );";
-
+        String SQL =
+                "SELECT position, price, total_view, delay_view, promotion, time FROM data JOIN schedule ON data.schedule_id = schedule.id  " +
+                        "WHERE ad_id = ? AND schedule_id IN ( SELECT id FROM schedule WHERE task_id = ? " + String.format("AND ( time >= %d AND time < %d ) )", day * 24, (day * 24) + 24);
         List<AdStat> adStats = jdbcTemplate.query(SQL, (rs, i) -> {
             AdStat stat = new AdStat();
 
             stat.setPosition(60 - rs.getInt("position"));
-            stat.setPrice(rs.getString("price"));
+//            stat.setPrice(rs.getString("price"));
             stat.setTotalView(rs.getInt("total_view"));
             stat.setDelayView(rs.getInt("delay_view"));
             stat.setPromotion(rs.getString("promotion"));
@@ -232,7 +233,7 @@ public class AdDAO {
         return schedule;
     }
 
-    public void createSchedules( List<Schedule> newSchedule ) {
+    public void createSchedules(List<Schedule> newSchedule) {
 
         String INSERT_SQL = "INSERT INTO schedule (task_id, time, status) VALUES ( ?, ?, ? )";
         jdbcTemplate.batchUpdate(INSERT_SQL, new BatchPreparedStatementSetter() {

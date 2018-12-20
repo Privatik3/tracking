@@ -32,7 +32,8 @@ public class TimerUpdateTask extends TimerTask {
                 adDAO.prepareData(new ArrayList<>(complete), record.getId());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            if (!e.getMessage().equals("Не было получаено результата"))
+                e.printStackTrace();
         }
     }
 }
