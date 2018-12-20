@@ -98,7 +98,7 @@ public class Utility {
     public static void requestUpdate(List<Schedule> notFull) {
         try {
             List<String> tokens = notFull.stream().map(nf -> String.format("trk_%s_%s", nf.getTaskId(), nf.getTime())).collect(Collectors.toList());
-            String body = jsonPost("http://localhost:8080/historyByTokens", mapper.writeValueAsString(tokens));
+            String body = jsonPost("http://185.139.69.108:8080/historyByTokens", mapper.writeValueAsString(tokens));
             for (JsonNode task : mapper.readTree(body)) {
                 try {
                     String[] nick = task.get("nick").asText().split("_");
@@ -251,7 +251,7 @@ public class Utility {
 
     public static void sendDelayTask(HashMap<String, String> param) throws Exception {
         jsonPost(
-                "http://localhost:8080/add_task",
+                "http://185.139.69.108:8080/add_task",
                 mapper.writeValueAsString(new Parameters(convertToPropFormat(param)))
         );
     }

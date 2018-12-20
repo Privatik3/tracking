@@ -253,7 +253,7 @@ public class AdDAO {
 
     private List<Schedule> getSchedule(int taskID, int day) {
         String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %d %s",
-                taskID, (day == -1 ? "" : String.format("LIMIT %d OFFSET %d", 24, day * 24)));
+                taskID, (day == -1 ? "" : String.format("AND ( time >= %d AND time < %d )", day * 24, (day * 24) + 24)));
 
         return jdbcTemplate.query(SQL, new RowMapper<Schedule>() {
             @Override
