@@ -47,6 +47,7 @@ public class TimerDownloadTask extends TimerTask {
                     if (time >= record.getAllTime()) {
                         record.setTime(time);
                         record.setStatus(freelance.tracking.dao.entity.task.Status.COMPLETE);
+                        adDAO.clearTaskParams(record.getId());
                     } else {
                         record.setTime(time);
                         record.setStatus(freelance.tracking.dao.entity.task.Status.PROCESSING);

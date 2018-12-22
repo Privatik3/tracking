@@ -19,6 +19,7 @@ public @Data class AdInfo {
     private Param vip;
     private Param urgent;
     private Param upped;
+    private Param xl;
 
     private boolean old;
     private boolean selected;
@@ -32,5 +33,6 @@ public @Data class AdInfo {
         this.vip.update(prevAd.vip);
         this.urgent.update(prevAd.urgent);
         this.upped.update(prevAd.upped);
+        this.xl.update(prevAd.xl);
     }
 }

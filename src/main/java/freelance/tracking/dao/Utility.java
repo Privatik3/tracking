@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 public class Utility {
 
+    private static final String TASK_MANAGER_IP = "localhost";
     private static AdDAO adDAO;
 
     private static ObjectMapper mapper = new ObjectMapper();
@@ -98,7 +99,7 @@ public class Utility {
     public static void requestUpdate(List<Schedule> notFull) {
         try {
             List<String> tokens = notFull.stream().map(nf -> String.format("trk_%s_%s", nf.getTaskId(), nf.getTime())).collect(Collectors.toList());
-            String body = jsonPost("http://localhost:8080/historyByTokens", mapper.writeValueAsString(tokens));
+            String body = jsonPost("http://" + TASK_MANAGER_IP + ":8080/historyByTokens", mapper.writeValueAsString(tokens));
             for (JsonNode task : mapper.readTree(body)) {
                 try {
                     String[] nick = task.get("nick").asText().split("_");
@@ -179,6 +180,22 @@ public class Utility {
                 XSSFWorkbook out = new XSSFWorkbook(new FileInputStream(PATH + id + ".xlsx"));
                 XSSFSheet sheet = out.getSheetAt(0);
 
+                int urlOffset = 0, titleOffset = 0, allViewOffset = 0, todayViewOffset = 0;
+                int positionOffset = 0, priceOffset = 0, promOffset = 0;
+
+                XSSFRow header = sheet.getRow(0);
+                for (int i = 0; i <= header.getLastCellNum(); i++) {
+                    switch (getDataFromRow(header, i)) {
+                        case "Позиция": positionOffset = i; break;
+                        case "Цена": priceOffset = i; break;
+                        case "Просм. Всего": allViewOffset = i; break;
+                        case "Просм. Сегодня": todayViewOffset = i; break;
+                        case "Методы продвижения": promOffset = i; break;
+                        case "Ссылка": urlOffset = i; break;
+                        case "Заголовок": titleOffset = i; break;
+                    }
+                }
+
                 for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                     XSSFRow row = sheet.getRow(i);
 
@@ -186,21 +203,22 @@ public class Utility {
                         AdInfo ad = new AdInfo();
 
                         ad.setScheduleID(id);
-                        String url = getDataFromRow(row, 13);
-                        ad.setId(url.substring(url.lastIndexOf("_") + 1));
+                        String url = getDataFromRow(row, urlOffset);
+                        ad.setId(url.substring(url.lastIndexOf("_") + 1).replaceAll("\\?.*", ""));
                         ad.setUrl(new freelance.tracking.dao.entity.Param(url));
 
-                        ad.setTitle(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 1)));
-                        ad.setPosition(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 0)));
-                        ad.setPrice(new freelance.tracking.dao.entity.Param(getDataFromRow(row, 2)));
+                        ad.setTitle(new freelance.tracking.dao.entity.Param(getDataFromRow(row, titleOffset)));
+                        ad.setPosition(new freelance.tracking.dao.entity.Param(getDataFromRow(row, positionOffset)));
+                        ad.setPrice(new freelance.tracking.dao.entity.Param(getDataFromRow(row, priceOffset)));
                         ad.setStats(new freelance.tracking.dao.entity.Param(String.format("%s (+%s)",
-                                getDataFromRow(row, 4), getDataFromRow(row, 5))));
+                                getDataFromRow(row, allViewOffset), getDataFromRow(row, todayViewOffset))));
 
-                        String prom = getDataFromRow(row, 7);
+                        String prom = getDataFromRow(row, promOffset);
                         ad.setPremium(new freelance.tracking.dao.entity.Param(prom.contains("1") ? "1" : "0"));
                         ad.setVip(new freelance.tracking.dao.entity.Param(prom.contains("2") ? "1" : "0"));
                         ad.setUrgent(new freelance.tracking.dao.entity.Param(prom.contains("3") ? "1" : "0"));
                         ad.setUpped(new freelance.tracking.dao.entity.Param(prom.contains("4") ? "1" : "0"));
+                        ad.setXl(new freelance.tracking.dao.entity.Param(prom.contains("5") ? "1" : "0"));
 
                         adStats.add(ad);
                     } catch (Exception ignore) {
@@ -251,7 +269,7 @@ public class Utility {
 
     public static void sendDelayTask(HashMap<String, String> param) throws Exception {
         jsonPost(
-                "http://localhost:8080/add_task",
+                "http://" + TASK_MANAGER_IP + ":8080/add_task",
                 mapper.writeValueAsString(new Parameters(convertToPropFormat(param)))
         );
     }

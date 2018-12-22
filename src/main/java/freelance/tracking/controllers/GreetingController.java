@@ -55,11 +55,12 @@ public class GreetingController {
     @CrossOrigin
     @PostMapping("/get-ads")
     public String getAds(
+            @ModelAttribute("taskID") String taskID,
             @ModelAttribute("time") String time,
             @ModelAttribute("sort") String sort,
             @ModelAttribute("selectedID") String selectedID, Model model) {
 
-        List<AdInfo> ads = adDAO.getAdInfo(time, sort);
+        List<AdInfo> ads = adDAO.getAdInfo(taskID, time, sort);
 
         if (!selectedID.isEmpty()) {
             Optional<AdInfo> any = ads.stream().filter(ad -> ad.getId().equals(selectedID)).findAny();

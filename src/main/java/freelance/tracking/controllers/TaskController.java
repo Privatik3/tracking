@@ -42,10 +42,10 @@ public class TaskController {
 
             // Отключаем не нужные
             params.remove("photo");
+            params.remove("date");
             params.remove("description");
             params.remove("descriptionLength");
             params.remove("sellerName");
-            params.remove("Статистика просмотров");
             params.remove("phone");
 
             Record record = new Record();

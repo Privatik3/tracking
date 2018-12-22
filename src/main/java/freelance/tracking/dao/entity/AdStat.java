@@ -11,6 +11,7 @@ public class AdStat {
     private boolean vip;
     private boolean urgent;
     private boolean upped;
+    private boolean xl;
 
     public String getTimePos() {
         return timePos;
@@ -49,6 +50,7 @@ public class AdStat {
         this.vip = prom.contains("2");
         this.urgent = prom.contains("3");
         this.upped = prom.contains("4");
+        this.xl = prom.contains("5");
     }
 
     public boolean isPremium() {
@@ -66,4 +68,10 @@ public class AdStat {
     public boolean isUpped() {
         return upped;
     }
+
+    public boolean isXl() {
+        return xl;
+    }
+
+
 }

@@ -44,9 +44,9 @@ public class AdDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<AdInfo> getAdInfo(String time, String sort) {
+    public List<AdInfo> getAdInfo(String taskID, String time, String sort) {
 
-        String SQL = "SELECT * FROM data WHERE schedule_id IN ( SELECT id FROM schedule WHERE time IN ( ?, ? ) ) ORDER BY " + sort;
+        String SQL = "SELECT * FROM data WHERE schedule_id IN ( SELECT id FROM schedule WHERE time IN ( ?, ? ) AND task_id = ? ) ORDER BY " + sort;
 
         AtomicInteger scheduleMax = new AtomicInteger();
         List<AdInfo> ads = jdbcTemplate.query(SQL, (rs, i) -> {
@@ -74,6 +74,7 @@ public class AdDAO {
                 ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
                 ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
                 ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
+                ad.setXl(new Param(prom.contains("5") ? "1" : "0"));
 
                 return ad;
             } catch (Exception e) {
@@ -81,7 +82,7 @@ public class AdDAO {
             }
 
             return ad;
-        }, Integer.parseInt(time) - 1, time);
+        }, Integer.parseInt(time) - 1, time, taskID);
 
         List<AdInfo> previousAds = new ArrayList<>();
         Iterator<AdInfo> adIter = ads.iterator();
@@ -348,6 +349,7 @@ public class AdDAO {
                                 + (ad.getVip().toString().equals("1") ? "2" : "")
                                 + (ad.getUrgent().toString().equals("1") ? "3" : "")
                                 + (ad.getUpped().toString().equals("1") ? "4" : "")
+                                + (ad.getXl().toString().equals("1") ? "5" : "")
                 );
             }
 
