@@ -44,51 +44,55 @@ public class AdDAO {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    private RowMapper<AdInfo> getAdInfoMapper() {
+        return new RowMapper<AdInfo>() {
+            @Override
+            public AdInfo mapRow(ResultSet rs, int i) throws SQLException {
+                AdInfo ad = new AdInfo();
+                try {
+                    int scheduleID = rs.getInt("schedule_id");
+                    ad.setScheduleID(scheduleID);
+                    ad.setId(rs.getString("ad_id"));
+                    ad.setPosition(new Param(rs.getString("position")));
+                    ad.setTitle(new Param(rs.getString("title")));
+                    ad.setUrl(new Param(rs.getString("url")));
+                    ad.setPrice(new Param(rs.getString("price")));
+
+                    int totalView = rs.getInt("total_view");
+                    int delayView = rs.getInt("delay_view");
+
+                    ad.setStats(new Param(String.format("%d (+%d)", totalView, delayView)));
+                    ad.setOld(totalView == delayView);
+
+                    String prom = rs.getString("promotion");
+                    ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));
+                    ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
+                    ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
+                    ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
+                    ad.setXl(new Param(prom.contains("5") ? "1" : "0"));
+
+                    return ad;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                return ad;
+            }
+        };
+    }
+
     public List<AdInfo> getAdInfo(String taskID, String time, String sort) {
 
         String SQL = "SELECT * FROM data WHERE schedule_id IN ( SELECT id FROM schedule WHERE time IN ( ?, ? ) AND task_id = ? ) ORDER BY " + sort;
 
-        AtomicInteger scheduleMax = new AtomicInteger();
-        List<AdInfo> ads = jdbcTemplate.query(SQL, (rs, i) -> {
-            AdInfo ad = new AdInfo();
-            try {
-                int scheduleID = rs.getInt("schedule_id");
-                ad.setScheduleID(scheduleID);
-                if (scheduleMax.get() < scheduleID)
-                    scheduleMax.set(scheduleID);
-
-                ad.setId(rs.getString("ad_id"));
-                ad.setPosition(new Param(rs.getString("position")));
-                ad.setTitle(new Param(rs.getString("title")));
-                ad.setUrl(new Param(rs.getString("url")));
-                ad.setPrice(new Param(rs.getString("price")));
-
-                int totalView = rs.getInt("total_view");
-                int delayView = rs.getInt("delay_view");
-
-                ad.setStats(new Param(String.format("%d (+%d)", totalView, delayView)));
-                ad.setOld(totalView == delayView);
-
-                String prom = rs.getString("promotion");
-                ad.setPremium(new Param(prom.contains("1") ? "1" : "0"));
-                ad.setVip(new Param(prom.contains("2") ? "1" : "0"));
-                ad.setUrgent(new Param(prom.contains("3") ? "1" : "0"));
-                ad.setUpped(new Param(prom.contains("4") ? "1" : "0"));
-                ad.setXl(new Param(prom.contains("5") ? "1" : "0"));
-
-                return ad;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return ad;
-        }, Integer.parseInt(time) - 1, time, taskID);
+        List<AdInfo> ads = jdbcTemplate.query(SQL, getAdInfoMapper(), Integer.parseInt(time) - 1, time, taskID);
+        Integer scheduleMax = Collections.max(ads.stream().map(AdInfo::getScheduleID).collect(Collectors.toList()));
 
         List<AdInfo> previousAds = new ArrayList<>();
         Iterator<AdInfo> adIter = ads.iterator();
         while (adIter.hasNext()) {
             AdInfo next = adIter.next();
-            if (next.getScheduleID() != scheduleMax.get()) {
+            if (next.getScheduleID() != scheduleMax) {
                 previousAds.add(next);
                 adIter.remove();
             }
@@ -101,6 +105,17 @@ public class AdDAO {
         });
 
         return ads;
+    }
+
+    private List<AdInfo> getAdInfoByHoursList(String taskID, List<Schedule> dayHours) {
+
+        String SQL = "SELECT * FROM data WHERE schedule_id IN ( :ids )";
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue("ids", dayHours.stream().map(c -> c.getId()).collect(Collectors.toList()));
+
+        NamedParameterJdbcTemplate template =
+                new NamedParameterJdbcTemplate(jdbcTemplate.getDataSource());
+        return template.query(SQL, parameters, getAdInfoMapper());
     }
 
     public List<AdStat> getAdStat(String adID, String taskID, int day) {
@@ -131,81 +146,96 @@ public class AdDAO {
         return adStats;
     }
 
-    public List<Report> getGeneralReport(String reportID) {
+    public List<Report> getGeneralReport(String taskID) throws Exception {
 
         List<Report> result = new ArrayList<>();
 
-        int dayCount = ThreadLocalRandom.current().nextInt(1, 7 + 1);
-        for (int i = 0; i < dayCount; i++) {
+        for (int i = 0; i < 7; i++) {
+            try {
+                List<Schedule> schedules = updateTask(Integer.parseInt(taskID), i);
+                List<Schedule> dayHours = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
+                prepareData(new ArrayList<>(dayHours), Integer.parseInt(taskID));
 
-            Report report = new Report();
-            report.setDate(String.valueOf(14 + i) + ".11.2018");
+                System.out.println("DAY: " + i);
+                System.out.println("====================================");
 
-            int scip = ThreadLocalRandom.current().nextInt(1, 5 + 1);
-            int[] scipNum = new int[scip];
-            for (int j = 0; j < scipNum.length; j++) {
-                scipNum[j] = ThreadLocalRandom.current().nextInt(1, 24 + 1);
+                Report report = new Report();
+                report.setDate(String.format("%02d.00.2018", i + 1));
+
+                List<New> news = new ArrayList<>();
+                List<Up> ups = new ArrayList<>();
+                List<Method> methods = new ArrayList<>();
+
+                List<AdInfo> allAds = getAdInfoByHoursList(taskID, dayHours);
+                HashSet<String> prevNew = new HashSet<>();
+                for (Schedule hour : dayHours) {
+                    int id = hour.getId();
+                    int time = hour.getTime();
+
+                    // New
+                    New itemNew = new New();
+
+                    List<AdInfo> hourAds = new ArrayList<>();
+                    List<AdInfo> onlyNew = new ArrayList<>();
+                    for (AdInfo ad : allAds) {
+                        if (ad.getScheduleID() != id)
+                            continue;
+
+                        int[] stats = Utility.parseStats(ad.getStats().toString());
+                        if (stats[0] == stats[1]) {
+                            hourAds.add(ad);
+                            if (!prevNew.contains(ad.getId())) {
+                                onlyNew.add(ad);
+                                prevNew.add(ad.getId());
+                            }
+                        }
+                    }
+
+                    itemNew.setHour(time);
+                    itemNew.setNewCount(onlyNew.size());
+                    int sum = hourAds.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
+                    itemNew.setTotalView(sum);
+                    int sum1 = onlyNew.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
+                    itemNew.setHourView(sum1);
+
+                    news.add(itemNew);
+                }
+
+                report.setNewData(news);
+
+                // UP
+                for (int j = 0; j < 24; j++) {
+                    Up upData = new Up();
+                    upData.setHour(j);
+                    int upCount = ThreadLocalRandom.current().nextInt(1, 25 + 1);
+                    upData.setUpCount(upCount);
+                    int totalView = ThreadLocalRandom.current().nextInt(upCount * 2, (upCount * 5) + 1);
+                    upData.setTotalView(totalView);
+                    upData.setHourView(totalView / ThreadLocalRandom.current().nextInt(2, 4 + 1));
+
+                    ups.add(upData);
+                }
+                report.setUpData(ups);
+
+                // Method
+                for (int j = 0; j < 24; j++) {
+                    Method method = new Method();
+                    method.setHour(j);
+                    method.setPremiumCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+                    method.setUpCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+                    method.setSelectedCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+                    method.setXlCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+                    method.setVipCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+
+                    methods.add(method);
+                }
+                report.setMethodData(methods);
+
+                result.add(report);
+            } catch (Exception e) {
+//                e.printStackTrace();
+                break;
             }
-
-            // New
-            List<New> news = new ArrayList<>();
-
-            for (int j = 0; j < 24; j++) {
-                int finalJ = j;
-                if (Arrays.stream(scipNum).anyMatch(s -> s == finalJ))
-                    continue;
-
-                New newData = new New();
-                newData.setHour(j);
-                int newCount = ThreadLocalRandom.current().nextInt(1, 25 + 1);
-                newData.setNewCount(newCount);
-                int totalView = ThreadLocalRandom.current().nextInt(newCount * 2, (newCount * 5) + 1);
-                newData.setTotalView(totalView);
-                newData.setHourView(totalView / ThreadLocalRandom.current().nextInt(2, 4 + 1));
-
-                news.add(newData);
-            }
-            report.setNewData(news);
-
-            // UP
-            List<Up> ups = new ArrayList<>();
-            for (int j = 0; j < 24; j++) {
-                int finalJ = j;
-                if (Arrays.stream(scipNum).anyMatch(s -> s == finalJ))
-                    continue;
-
-                Up upData = new Up();
-                upData.setHour(j);
-                int upCount = ThreadLocalRandom.current().nextInt(1, 25 + 1);
-                upData.setUpCount(upCount);
-                int totalView = ThreadLocalRandom.current().nextInt(upCount * 2, (upCount * 5) + 1);
-                upData.setTotalView(totalView);
-                upData.setHourView(totalView / ThreadLocalRandom.current().nextInt(2, 4 + 1));
-
-                ups.add(upData);
-            }
-            report.setUpData(ups);
-
-            // Method
-            List<Method> methods = new ArrayList<>();
-            for (int j = 0; j < 24; j++) {
-                int finalJ = j;
-                if (Arrays.stream(scipNum).anyMatch(s -> s == finalJ))
-                    continue;
-
-                Method method = new Method();
-                method.setHour(j);
-                method.setPremiumCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                method.setUpCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                method.setSelectedCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                method.setXlCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                method.setVipCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-
-                methods.add(method);
-            }
-            report.setMethodData(methods);
-
-            result.add(report);
         }
 
         return result;
@@ -254,7 +284,7 @@ public class AdDAO {
     }
 
     private List<Schedule> getSchedule(int taskID, int day) {
-        String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %d %s",
+        String SQL = String.format("SELECT id, time, report, status FROM schedule where task_id = %d %s ORDER BY time",
                 taskID, (day == -1 ? "" : String.format("AND ( time >= %d AND time < %d )", day * 24, (day * 24) + 24)));
 
         return jdbcTemplate.query(SQL, new RowMapper<Schedule>() {

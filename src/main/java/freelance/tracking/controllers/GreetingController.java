@@ -47,7 +47,7 @@ public class GreetingController {
     @RequestMapping(value = "/general-report", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public List<Report> getGeneralReport(
-            @RequestParam(name="reportID") String reportID) {
+            @RequestParam(name="reportID") String reportID) throws Exception {
 
         return adDAO.getGeneralReport(reportID);
     }

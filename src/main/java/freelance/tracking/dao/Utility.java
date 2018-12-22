@@ -283,4 +283,13 @@ public class Utility {
 
         return result;
     }
+
+    public static int[] parseStats(String stats) {
+        int[] result = new int[2];
+        String[] stat = stats.split(" \\(\\+");
+        result[0] = Integer.parseInt(stat[0]);
+        result[1] = Integer.parseInt(stat[1].replace(")", ""));
+
+        return result;
+    }
 }

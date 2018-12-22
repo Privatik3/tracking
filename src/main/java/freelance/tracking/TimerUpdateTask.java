@@ -29,7 +29,7 @@ public class TimerUpdateTask extends TimerTask {
             for (Record record : records) {
                 List<Schedule> schedules = adDAO.updateTask(record.getId());
                 List<Schedule> complete = schedules.stream().filter(s -> s.getStatus() == Status.COMPLETE).collect(Collectors.toList());
-                adDAO.prepareData(new ArrayList<>(complete), record.getId());
+                adDAO.prepareData(complete, record.getId());
             }
         } catch (Exception e) {
             if (!e.getMessage().equals("Не было получаено результата"))
