@@ -24,10 +24,12 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -50,8 +52,8 @@ public class AdDAO {
             public AdInfo mapRow(ResultSet rs, int i) throws SQLException {
                 AdInfo ad = new AdInfo();
                 try {
-                    int scheduleID = rs.getInt("schedule_id");
-                    ad.setScheduleID(scheduleID);
+                    ad.setScheduleID(rs.getInt("schedule_id"));
+                    ad.setUpTime(rs.getTimestamp("up_time"));
                     ad.setId(rs.getString("ad_id"));
                     ad.setPosition(new Param(rs.getString("position")));
                     ad.setTitle(new Param(rs.getString("title")));
@@ -150,6 +152,11 @@ public class AdDAO {
 
         List<Report> result = new ArrayList<>();
 
+        Record history = getHistoryByID(taskID);
+        Calendar startDay = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow"));
+        startDay.setTime(history.getAddTime());
+        startDay.add(Calendar.DATE, 1);
+
         for (int i = 0; i < 7; i++) {
             try {
                 List<Schedule> schedules = updateTask(Integer.parseInt(taskID), i);
@@ -160,14 +167,18 @@ public class AdDAO {
                 System.out.println("====================================");
 
                 Report report = new Report();
-                report.setDate(String.format("%02d.00.2018", i + 1));
+
+                Calendar newDay = (Calendar) startDay.clone();
+                newDay.add(Calendar.DATE, i);
+                report.setDate(new SimpleDateFormat("dd.MM.yyyy").format(newDay.getTime()));
 
                 List<New> news = new ArrayList<>();
                 List<Up> ups = new ArrayList<>();
                 List<Method> methods = new ArrayList<>();
 
+                List<AdInfo> lastHourNew = new ArrayList<>();
+
                 List<AdInfo> allAds = getAdInfoByHoursList(taskID, dayHours);
-                HashSet<String> prevNew = new HashSet<>();
                 for (Schedule hour : dayHours) {
                     int id = hour.getId();
                     int time = hour.getTime();
@@ -176,59 +187,84 @@ public class AdDAO {
                     New itemNew = new New();
 
                     List<AdInfo> hourAds = new ArrayList<>();
-                    List<AdInfo> onlyNew = new ArrayList<>();
+                    int hourViewCounter = 0;
                     for (AdInfo ad : allAds) {
-                        if (ad.getScheduleID() != id)
-                            continue;
-
-                        int[] stats = Utility.parseStats(ad.getStats().toString());
-                        if (stats[0] == stats[1]) {
+                        if (ad.getScheduleID() != id) continue;
+                        if (Utility.isNew(ad)) {
                             hourAds.add(ad);
-                            if (!prevNew.contains(ad.getId())) {
-                                onlyNew.add(ad);
-                                prevNew.add(ad.getId());
+                            Optional<AdInfo> prev = lastHourNew.stream().filter(lAd -> lAd.getId().equals(ad.getId())).findFirst();
+                            if (prev.isPresent()) {
+                                int prevStat = Utility.parseStats(prev.get().getStats().getCurVal())[1];
+                                int curStat = Utility.parseStats(ad.getStats().getCurVal())[1];
+
+                                hourViewCounter += curStat - prevStat;
                             }
                         }
                     }
 
                     itemNew.setHour(time);
-                    itemNew.setNewCount(onlyNew.size());
-                    int sum = hourAds.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
-                    itemNew.setTotalView(sum);
-                    int sum1 = onlyNew.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
-                    itemNew.setHourView(sum1);
+                    itemNew.setNewCount(hourAds.size());
+                    int totalView = hourAds.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
+                    itemNew.setTotalView(totalView - hourViewCounter);
+                    itemNew.setHourView(hourViewCounter);
 
                     news.add(itemNew);
-                }
+                    lastHourNew = new ArrayList<>(hourAds);
 
-                report.setNewData(news);
+                    //UP
+                    Up upItem = new Up();
+                    Calendar upDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Moscow"));
 
-                // UP
-                for (int j = 0; j < 24; j++) {
-                    Up upData = new Up();
-                    upData.setHour(j);
-                    int upCount = ThreadLocalRandom.current().nextInt(1, 25 + 1);
-                    upData.setUpCount(upCount);
-                    int totalView = ThreadLocalRandom.current().nextInt(upCount * 2, (upCount * 5) + 1);
-                    upData.setTotalView(totalView);
-                    upData.setHourView(totalView / ThreadLocalRandom.current().nextInt(2, 4 + 1));
+                    HashSet<AdInfo> upAds = new HashSet<>();
+                    for (AdInfo ad : allAds) {
+                        if (ad.getScheduleID() == id) {
+                            if (!Utility.isNew(ad)) {
+                                upDate.setTime(ad.getUpTime());
+                                long timeDiff = upDate.getTimeInMillis() - startDay.getTimeInMillis();
+                                int upTime = (int) timeDiff / (1000 * 60 * 60);
 
-                    ups.add(upData);
-                }
-                report.setUpData(ups);
+                                if (upTime == (time - 1)) {
+                                    upAds.add(ad);
+                                }
+                            }
+                        }
+                    }
 
-                // Method
-                for (int j = 0; j < 24; j++) {
+                    upItem.setHour(time);
+                    upItem.setUpCount(upAds.size());
+                    int totalUpView = upAds.stream().mapToInt(ad -> Utility.parseStats(ad.getStats().toString())[1]).sum();
+                    upItem.setTotalView(totalUpView);
+//                    upItem.setHourView(0);
+
+                    ups.add(upItem);
+
+                    // Method
                     Method method = new Method();
-                    method.setHour(j);
-                    method.setPremiumCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                    method.setUpCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                    method.setSelectedCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                    method.setXlCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
-                    method.setVipCount(ThreadLocalRandom.current().nextInt(1, 8 + 1));
+
+                    int upCount = 0, selectedCount = 0, vipCount = 0,
+                        premiumCount = 0, xlCount = 0;
+                    for (AdInfo ad : allAds) {
+                        if (ad.getScheduleID() != id) continue;
+
+                        upCount += ad.getUpped().getCurVal().equals("1") ? 1 : 0;
+                        selectedCount += ad.getUrgent().getCurVal().equals("1") ? 1 : 0;
+                        vipCount += ad.getVip().getCurVal().equals("1") ? 1 : 0;
+                        premiumCount += ad.getPremium().getCurVal().equals("1") ? 1 : 0;
+                        xlCount += ad.getXl().getCurVal().equals("1") ? 1 : 0;
+                    }
+
+                    method.setHour(time);
+                    method.setUpCount(upCount);
+                    method.setSelectedCount(selectedCount);
+                    method.setVipCount(vipCount);
+                    method.setPremiumCount(premiumCount);
+                    method.setXlCount(xlCount);
 
                     methods.add(method);
                 }
+
+                report.setNewData(news);
+                report.setUpData(ups);
                 report.setMethodData(methods);
 
                 result.add(report);
@@ -354,40 +390,44 @@ public class AdDAO {
 
     public void insertData(List<AdInfo> adStats, int taskID) {
 
-        String INSER_SQL = "INSERT INTO data (schedule_id, ad_id, position, title, url, price, total_view, delay_view, promotion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String INSER_SQL = "INSERT INTO data (schedule_id, up_time, ad_id, position, title, url, price, total_view, delay_view, promotion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        jdbcTemplate.batchUpdate(INSER_SQL, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement pr, int i) throws SQLException {
-                AdInfo ad = adStats.get(i);
+        try {
+            jdbcTemplate.batchUpdate(INSER_SQL, new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement pr, int i) throws SQLException {
+                    AdInfo ad = adStats.get(i);
 
-                pr.setInt(1, ad.getScheduleID());
-                pr.setInt(2, Integer.parseInt(ad.getId()));
-                pr.setInt(3, Integer.parseInt(ad.getPosition().toString()));
-                pr.setString(4,
-                        ad.getTitle().toString().length() < 100 ? ad.getTitle().toString() :
-                                ad.getTitle().toString().substring(0, 100 - 3) + "...");
-                pr.setString(5, ad.getUrl().toString());
-                pr.setString(6, ad.getPrice().toString());
+                    pr.setInt(1, ad.getScheduleID());
+                    pr.setTimestamp(2, new Timestamp(ad.getUpTime().getTime()));
+                    pr.setInt(3, Integer.parseInt(ad.getId()));
+                    pr.setInt(4, Integer.parseInt(ad.getPosition().toString()));
+                    pr.setString(5,
+                            ad.getTitle().toString().length() < 100 ? ad.getTitle().toString() :
+                                    ad.getTitle().toString().substring(0, 100 - 3) + "...");
+                    pr.setString(6, ad.getUrl().toString());
+                    pr.setString(7, ad.getPrice().toString());
+                    pr.setInt(8, Utility.parseStats(ad.getStats().toString())[0]);
+                    pr.setInt(9, Utility.parseStats(ad.getStats().toString())[1]);
 
-                String[] stata = ad.getStats().toString().split(" \\(\\+");
-                pr.setInt(7, Integer.parseInt(stata[0]));
-                pr.setInt(8, Integer.parseInt(stata[1].replace(")", "")));
+                    pr.setString(10,
+                            (ad.getPremium().toString().equals("1") ? "1" : "")
+                                    + (ad.getVip().toString().equals("1") ? "2" : "")
+                                    + (ad.getUrgent().toString().equals("1") ? "3" : "")
+                                    + (ad.getUpped().toString().equals("1") ? "4" : "")
+                                    + (ad.getXl().toString().equals("1") ? "5" : "")
+                    );
+                }
 
-                pr.setString(9,
-                        (ad.getPremium().toString().equals("1") ? "1" : "")
-                                + (ad.getVip().toString().equals("1") ? "2" : "")
-                                + (ad.getUrgent().toString().equals("1") ? "3" : "")
-                                + (ad.getUpped().toString().equals("1") ? "4" : "")
-                                + (ad.getXl().toString().equals("1") ? "5" : "")
-                );
-            }
-
-            @Override
-            public int getBatchSize() {
-                return adStats.size();
-            }
-        });
+                @Override
+                public int getBatchSize() {
+                    return adStats.size();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println();
+        }
     }
 
     public void createTaskRecord(Record record) throws TaskLimitException {
@@ -476,6 +516,11 @@ public class AdDAO {
     public List<Record> getHistory(String nick) {
         String SQL = "SELECT * FROM task WHERE nick = ?";
         return jdbcTemplate.query(SQL, getRecordMapper(), nick);
+    }
+
+    public Record getHistoryByID(String taskID) {
+        String SQL = "SELECT * FROM task WHERE id = ?";
+        return jdbcTemplate.query(SQL, getRecordMapper(), taskID).get(0);
     }
 
     private RowMapper<Record> getRecordMapper() {

@@ -2,11 +2,15 @@ package freelance.tracking.dao.entity;
 
 import lombok.Data;
 
+import java.util.Date;
+import java.util.Objects;
+
 public @Data class AdInfo {
 
     private int scheduleID;
 
     private String id;
+    private Date upTime;
     private Param position;
 
     private Param title;
@@ -34,5 +38,18 @@ public @Data class AdInfo {
         this.urgent.update(prevAd.urgent);
         this.upped.update(prevAd.upped);
         this.xl.update(prevAd.xl);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AdInfo adInfo = (AdInfo) o;
+        return Objects.equals(id, adInfo.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

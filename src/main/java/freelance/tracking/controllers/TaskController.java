@@ -35,7 +35,7 @@ public class TaskController {
             HashMap<String, String> params = Utility.parseTaskParams(param);
 
             // Ограничиваем количество страниц
-            params.putIfAbsent("max_pages", "1");
+            params.replace("max_pages", "2");
 
             // Проводим настройку фильтров
             params.putIfAbsent("position", "true");

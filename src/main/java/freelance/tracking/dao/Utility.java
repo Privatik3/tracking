@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -181,7 +182,7 @@ public class Utility {
                 XSSFSheet sheet = out.getSheetAt(0);
 
                 int urlOffset = 0, titleOffset = 0, allViewOffset = 0, todayViewOffset = 0;
-                int positionOffset = 0, priceOffset = 0, promOffset = 0;
+                int positionOffset = 0, priceOffset = 0, promOffset = 0, upTimeOffset = 0;
 
                 XSSFRow header = sheet.getRow(0);
                 for (int i = 0; i <= header.getLastCellNum(); i++) {
@@ -193,6 +194,7 @@ public class Utility {
                         case "Методы продвижения": promOffset = i; break;
                         case "Ссылка": urlOffset = i; break;
                         case "Заголовок": titleOffset = i; break;
+                        case "Время поднятия": upTimeOffset = i; break;
                     }
                 }
 
@@ -203,6 +205,8 @@ public class Utility {
                         AdInfo ad = new AdInfo();
 
                         ad.setScheduleID(id);
+                        ad.setUpTime(new SimpleDateFormat("yyyy.MM.dd HH:mm").parse(getDataFromRow(row, upTimeOffset)));
+
                         String url = getDataFromRow(row, urlOffset);
                         ad.setId(url.substring(url.lastIndexOf("_") + 1).replaceAll("\\?.*", ""));
                         ad.setUrl(new freelance.tracking.dao.entity.Param(url));
@@ -282,6 +286,11 @@ public class Utility {
             result[paramIndex++] = new Param(param.getKey(), param.getValue());
 
         return result;
+    }
+
+    public static boolean isNew(AdInfo ad) {
+        int[] stats = parseStats(ad.getStats().toString());
+        return stats[0] == stats[1];
     }
 
     public static int[] parseStats(String stats) {
